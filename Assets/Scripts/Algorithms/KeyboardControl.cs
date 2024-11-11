@@ -47,7 +47,8 @@ namespace Algorithms
             // }
             // Debug.Log($"{roll}, {pitch}, {yaw}, {throttle}");
 
-            drone.RC(roll, pitch, yaw, 0);
+            if (roll != 0 || pitch != 0 || yaw != 0 || throttle != 0)
+                drone.RC(roll, pitch, yaw, 0);
         }
     }
 }

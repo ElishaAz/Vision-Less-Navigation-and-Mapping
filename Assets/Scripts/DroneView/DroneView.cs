@@ -7,6 +7,8 @@ namespace DroneView
 {
     public class DroneView : MonoBehaviour
     {
+        public static Vector3 Offset { get; private set; }
+        
         [SerializeField] private Drone.Drone drone;
         [SerializeField] private DroneSensors sensors;
 
@@ -15,6 +17,11 @@ namespace DroneView
         [SerializeField] private Transform holder;
 
         [SerializeField] private float interval = 0.1f;
+
+        private void Awake()
+        {
+            Offset = offset;
+        }
 
         private void Start()
         {

@@ -130,14 +130,14 @@ namespace Algorithms
 			{
 				case PitchYawMode.Emergency:
 					pitch = -0.1f;
-					yaw = -0.5f;
+					yaw = -0.1f;
 					break;
 				case PitchYawMode.RightFar:
 					pitch = 0.1f;
 					yaw = 1;
 					break;
 				case PitchYawMode.RightFarAndFrontClose:
-					pitch = 0;	
+					pitch = 0.05f;
 					yaw = 1;
 					break;
 				case PitchYawMode.FrontClose:
