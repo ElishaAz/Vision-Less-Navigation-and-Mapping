@@ -512,7 +512,7 @@
                 {
                     "name": "",
                     "id": "2531a497-4843-4a9f-84a5-61056b3d4bf1",
-                    "path": "<Linux::OpenTXRadiomasterZorroJoystick>/Stick/x",
+                    "path": "<Linux::OpenTXRadiomasterZorroJoystick>/RotateX",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -602,7 +602,7 @@
                     "id": "501329f8-a22d-42f1-b869-3a687e680e0f",
                     "path": "<Joystick>/stick/y",
                     "interactions": "",
-                    "processors": "",
+                    "processors": "Invert",
                     "groups": "",
                     "action": "Pitch",
                     "isComposite": false,
@@ -677,7 +677,7 @@
                 {
                     "name": "",
                     "id": "6e17fd20-472b-48f6-834f-8b08df985769",
-                    "path": "<Linux::OpenTXRadiomasterZorroJoystick>/RotateX",
+                    "path": "<Linux::OpenTXRadiomasterZorroJoystick>/Stick/x",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
