@@ -11,6 +11,7 @@ namespace Algorithms
 
 		[SerializeField] private float frontEmergency = 1f;
 		[SerializeField] private float targetFront = 2f;
+		[SerializeField] private float frontVeryFar = 5f;
 
 		[SerializeField] private float tunnel = 3f;
 		[SerializeField] private float rightFar = 3f;
@@ -111,7 +112,7 @@ namespace Algorithms
 				}
 				else
 				{
-					if (front > targetFront * 2)
+					if (front > frontVeryFar)
 					{
 						pitchYawMode = PitchYawMode.FrontVeryFar;
 					}
