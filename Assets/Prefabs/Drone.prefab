@@ -188,6 +188,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2496600485853399325}
   - component: {fileID: 7217918870097887193}
+  - component: {fileID: 2152719015556791020}
   - component: {fileID: 317637467296337126}
   - component: {fileID: 3085994043904529954}
   - component: {fileID: 5333918683711843794}
@@ -243,13 +244,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sensors: {fileID: 3085994043904529954}
   drone: {fileID: 317637467296337126}
-  frontEmergency: 1
-  targetFront: 2
-  tunnel: 6
-  rightFar: 5
-  rightOk: 2
+  frontEmergency: 0.4
+  targetFront: 1.2
+  frontVeryFar: 5
+  tunnel: 1.5
+  rightFar: 2
+  rightOk: 1
   rightClose: 0.2
-  frontClose: 1.5
+  frontClose: 0.7
+--- !u!114 &2152719015556791020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5027716066939427826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b291d4e5f1434029ac7048218d6e73bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sensors: {fileID: 3085994043904529954}
+  drone: {fileID: 317637467296337126}
 --- !u!114 &317637467296337126
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -266,7 +282,7 @@ MonoBehaviour:
   rollSpeed: 5
   maxPitchAngle: 15
   pitchSpeed: 5
-  rollPitchRate: 2
+  rollPitchRate: 10
   yawRate: 45
   thrustSpeed: 5
 --- !u!114 &3085994043904529954
@@ -601,7 +617,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.5
+      value: -0.1
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalPosition.y
@@ -694,7 +710,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.5
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalRotation.w
@@ -767,7 +783,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.5
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalPosition.y
@@ -775,7 +791,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalRotation.w
@@ -856,7 +872,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.5
+      value: -0.1
       objectReference: {fileID: 0}
     - target: {fileID: 8683292844557305735, guid: 1dd2d7e43638a5f20a1049604345a1f8, type: 3}
       propertyPath: m_LocalRotation.w

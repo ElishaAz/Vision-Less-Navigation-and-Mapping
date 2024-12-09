@@ -27,7 +27,8 @@ namespace Drone
         private float rollActual;
         private float pitchActual;
 
-        private Vector3 wind = new Vector3(0.1f, 0, 0.01f);
+        // private Vector3 wind = new Vector3(0.1f, 0, 0.01f);
+        private Vector3 wind = new Vector3(0, 0, 0);
 
         private void Awake()
         {
@@ -48,6 +49,13 @@ namespace Drone
             rb.angularVelocity = vector3;
         }
 
+        /// <summary>
+        /// Set the drone's RC command
+        /// </summary>
+        /// <param name="roll">Right is positive</param>
+        /// <param name="pitch">Forward is positive</param>
+        /// <param name="yaw">Clockwise is positive</param>
+        /// <param name="thrust">Up is positive</param>
         public void RC(float roll, float pitch, float yaw, float thrust)
         {
             rollRC = Mathf.Clamp(roll, -1, 1);

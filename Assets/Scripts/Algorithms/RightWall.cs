@@ -23,8 +23,8 @@ namespace Algorithms
 
 		private float front = float.PositiveInfinity, right = float.PositiveInfinity, left = float.PositiveInfinity;
 
-		private PID tunnelPID = new PID(0.5f, 0, 0, 0, 1, -1);
-		private PID rightPID = new PID(0.1f, 0, 0, 0, 0.1f, -0.1f);
+		private readonly PID tunnelPID = new PID(0.5f, 0, 0, 0, 1, -1);
+		private readonly PID rightPID = new PID(0.1f, 0, 0, 0, 0.1f, -0.1f);
 
 		private enum LidarMode
 		{

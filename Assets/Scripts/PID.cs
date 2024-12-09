@@ -47,12 +47,13 @@ public class PID
 
         // Calculate rollup parameters
         K = 2 / Ts;
-        b0 = (float)(Math.Pow(K, 2) * Kp + K * Ki + Ki * N + K * Kp * N + Math.Pow(K, 2) * Kd * N);
-        b1 = (float)(2 * Ki * N - 2 * Math.Pow(K, 2) * Kp - 2 * Math.Pow(K, 2) * Kd * N);
-        b2 = (float)(Math.Pow(K, 2) * Kp - K * Ki + Ki * N - K * Kp * N + Math.Pow(K, 2) * Kd * N);
-        a0 = (float)(Math.Pow(K, 2) + N * K);
-        a1 = (float)(-2 * Math.Pow(K, 2));
-        a2 = (float)(Math.Pow(K, 2) - K * N);
+        var k2 = K * K;
+        b0 = (float)(k2 * Kp + K * Ki + Ki * N + K * Kp * N + k2 * Kd * N);
+        b1 = (float)(2 * Ki * N - 2 * k2 * Kp - 2 * k2 * Kd * N);
+        b2 = (float)(k2 * Kp - K * Ki + Ki * N - K * Kp * N + k2 * Kd * N);
+        a0 = (float)(k2 + N * K);
+        a1 = (float)(-2 * k2);
+        a2 = (float)(k2 - K * N);
 
         // Age errors and output history
         e2 = e1;                        // Age errors one iteration

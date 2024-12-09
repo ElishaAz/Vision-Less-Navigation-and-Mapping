@@ -19,9 +19,12 @@ namespace Drone.Sensors.Noise
 
         public void Set(float distance)
         {
-            if (distance == Inf || distance < minDistance || distance > maxDistance)
+            if (float.IsInfinity(distance) || distance > maxDistance)
             {
                 Distance = Inf;
+            } else if (distance < minDistance)
+            {
+                Distance = -2;
             }
             else
             {
@@ -32,9 +35,12 @@ namespace Drone.Sensors.Noise
                         Random.Range(1 - NoiseParams.Instance.multLidar, 1 + NoiseParams.Instance.multLidar);
                 }
 
-                if (distance < minDistance || distance > maxDistance)
+                if (distance > maxDistance)
                 {
                     Distance = Inf;
+                } else if (distance < minDistance)
+                {
+                    Distance = -1;
                 }
                 else
                 {
