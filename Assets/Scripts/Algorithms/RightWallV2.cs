@@ -36,6 +36,12 @@ namespace Algorithms
                 previousError = error;
                 return Mathf.Clamp(output, min, max);
             }
+
+            public void Reset()
+            {
+                integral = 0;
+                previousError = 0;
+            }
         }
 
         // private readonly PID pitchPID = new PID(1f, 0, 0, 0, 0.5f, -0.1f);
@@ -47,20 +53,26 @@ namespace Algorithms
         // private readonly SimplePID rollFrontPID = new SimplePID(1f, 0, 0, 0f, 0.1f);
 
         private readonly SimplePID pitchPID = new SimplePID(-1f, 0, 0, 0.2f, 1f);
-        private readonly SimplePID rollRightPID = new SimplePID(-1f, 0, 0, -1f, 1f);
+        private readonly SimplePID pitchTunnelPID = new SimplePID(-1f, 0, 0, 0.1f, 1f);
+        private readonly SimplePID rollRightPID = new SimplePID(-1f, 0, -1f, -1f, 1f);
         private readonly SimplePID rollTunnelPID = new SimplePID(-1f, 0, 0, -1f, 1f);
         private readonly SimplePID yawPID = new SimplePID(-1f, 0, 0, -1f, 0);
 
 
-        private readonly SimplePID pitchTurnRightPID = new SimplePID(-1f, 0, 0, 0f, 0.1f);
+        private readonly SimplePID pitchWallYaw = new SimplePID(-1f, 0, 0, -1f, 1f);
+        private readonly SimplePID yawWallYaw = new SimplePID(-1f, 0, -1f, -1f, 1f);
         private readonly SimplePID yawTurnRightPID = new SimplePID(-1f, 0, 0, 0f, 1f);
         private readonly SimplePID rollTurnRightPID = new SimplePID(-1f, 0, 0, 0f, 0.2f);
+
+        private readonly State defaultState = State.RightWall;
 
 
         private enum State
         {
             RightWall,
             RightWallYaw,
+            RightWallYawTurnLeft,
+            RightWallYawFixedPitch,
             Tunnel,
             LeftWall,
             ForwardFast,
@@ -72,19 +84,31 @@ namespace Algorithms
 
         private State state;
         private float startTurnRightTime;
+        private float lastStateChangeTime;
+        private float lastYawCloseTime;
+        private float turnRightDistanceBeforeTurn;
 
         private void Awake()
         {
-            state = State.RightWall;
+            state = defaultState;
         }
 
         private void SetState(State newState)
         {
+            pitchPID.Reset();
+            pitchTunnelPID.Reset();
+            rollRightPID.Reset();
+            yawPID.Reset();
+            yawTurnRightPID.Reset();
+            rollTurnRightPID.Reset();
+            pitchWallYaw.Reset();
+            yawWallYaw.Reset();
+
             switch (newState)
             {
                 case State.RightWall:
                     break;
-                case State.RightWallYaw:
+                case State.RightWallYawFixedPitch:
                     break;
                 case State.Tunnel:
                     break;
@@ -104,6 +128,7 @@ namespace Algorithms
             }
 
             state = newState;
+            lastStateChangeTime = Time.time;
         }
 
         private void FixedUpdate()
@@ -173,35 +198,60 @@ namespace Algorithms
             {
                 case State.RightWall:
                     pitch = pitchPID.Get(2, front, Time.fixedDeltaTime);
-                    roll = rollRightPID.Get(1, right, Time.fixedDeltaTime);
+                    roll = rollRightPID.Get(1.2f, right, Time.fixedDeltaTime);
                     yaw = yawPID.Get(5, front, Time.fixedDeltaTime);
-                    if (right > 3)
+                    if (right > 3.5f)
                     {
                         SetState(State.TurnRight);
-                    } else if (right + left < 3)
+                    }
+                    else
+                    {
+                        turnRightDistanceBeforeTurn = right;
+                    }
+
+                    if (right + left < 3)
                     {
                         SetState(State.Tunnel);
-                    } else if (front < 1)
+                    }
+                    else if (front < 1)
                     {
-                        SetState(State.TurnLeft);
+                        SetState(State.RightWallYawTurnLeft);
                     }
 
                     break;
                 case State.Tunnel:
-                    pitch = 1f;
+                    pitch = pitchTunnelPID.Get(0.9f, front, Time.fixedDeltaTime);
                     roll = rollTunnelPID.Get(0, right - left, Time.fixedDeltaTime);
-                    yaw = yawPID.Get(5, front, Time.fixedDeltaTime);
+                    // yaw = yawPID.Get(5, front, Time.fixedDeltaTime);
 
-                    if (right > 3)
+                    if (right > 3.5f)
                     {
                         SetState(State.TurnRight);
-                    } else if (right + left > 3)
-                    {
-                        SetState(State.RightWall);
-                    } else if (front < 1)
-                    {
-                        SetState(State.TurnLeft);
                     }
+                    else
+                    {
+                        turnRightDistanceBeforeTurn = right;
+                    }
+
+                    if (right + left > 4)
+                    {
+                        if (right > 2 * left)
+                        {
+                            yaw = 1f;
+                        }
+                        else if (left > 2 * right)
+                        {
+                            yaw = -1f;
+                        }
+                        else
+                        {
+                            SetState(defaultState);
+                        }
+                    }
+                    // else if (front < 1)
+                    // {
+                    //     SetState(State.RightWallYawTurnLeft);
+                    // }
 
                     break;
                 case State.ForwardFast:
@@ -209,18 +259,70 @@ namespace Algorithms
                 case State.EmergencyStop:
                     break;
                 case State.RightWallYaw:
-                    pitch = 0.2f;
-                    yaw = yawTurnRightPID.Get(0.8f, right, Time.fixedDeltaTime);
-                    roll = rollTurnRightPID.Get(0.9f, right, Time.fixedDeltaTime);
-                    if (front > 5)
+                    pitch = pitchWallYaw.Get(1f, front, Time.fixedDeltaTime);
+                    if (front < 1.5f)
                     {
-                        SetState(State.RightWall);
+                        SetState(State.RightWallYawTurnLeft);
+                    }
+                    else
+                    {
+                        yaw = yawWallYaw.Get(1f, right, Time.fixedDeltaTime);
                     }
 
-                    if (left > 2 && front < 0.5f)
+                    if (right > 3)
+                    {
+                        SetState(State.TurnRight);
+                    }
+                    else if (right + left < 3)
+                    {
+                        SetState(State.Tunnel);
+                    }
+                    else if (front < 1)
                     {
                         SetState(State.TurnLeft);
                     }
+
+                    // roll = rollTurnRightPID.Get(0.9f, right, Time.fixedDeltaTime);
+                    break;
+                case State.RightWallYawTurnLeft:
+                    yaw = -1;
+                    pitch = 0;
+                    if (front < 1.5f)
+                    {
+                        lastYawCloseTime = Time.time;
+                    }
+                    else if (Time.time - lastYawCloseTime > 0.3f)
+                    {
+                        SetState(defaultState);
+                    }
+
+                    break;
+                case State.RightWallYawFixedPitch:
+                    pitch = 0.2f;
+                    if (right > 1.5f)
+                    {
+                        roll = 1f;
+                    }
+                    else
+                    {
+                        roll = rollTurnRightPID.Get(0, right - left, Time.fixedDeltaTime);
+                    }
+                    yaw = yawTurnRightPID.Get(0.8f, right, Time.fixedDeltaTime);
+                    if (front > 5)
+                    {
+                        SetState(defaultState);
+                    }
+
+                    if (left > 2 && front < 0.5f || front < 0.3f)
+                    {
+                        SetState(State.TurnLeft);
+                    }
+
+                    // if (front < 0.5f && right < 1f && left < 1f)
+                    // {
+                    //     SetState(defaultState);
+                    // }
+
                     break;
                 case State.TurnLeft:
                     pitch = 0;
@@ -228,7 +330,7 @@ namespace Algorithms
                     yaw = -1f;
                     if (front > 1.5)
                     {
-                        SetState(State.RightWall);
+                        SetState(defaultState);
                     }
 
                     break;
@@ -236,9 +338,9 @@ namespace Algorithms
                     pitch = 0f;
                     roll = 0.2f;
                     yaw = 1f;
-                    if (right < 1.2f)
+                    if (right < Mathf.Max(turnRightDistanceBeforeTurn - 0.05f, 1f))
                     {
-                        SetState(State.RightWallYaw);
+                        SetState(State.RightWallYawFixedPitch);
                     }
 
                     break;

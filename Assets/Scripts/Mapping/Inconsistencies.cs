@@ -108,7 +108,14 @@ namespace Mapping
 
                         if (lastNode != lastIncon)
                         {
-                            // TODO add edge
+                            var edge = new Edge
+                            {
+                                From = (Node)lastNode,
+                                To = lastIncon,
+                                Prefab = Instantiate(edgePrefab, transform)
+                            };
+                            edge.UpdatePosition();
+                            edges.Add(edge);
                         }
 
                         lastNode = lastIncon;
