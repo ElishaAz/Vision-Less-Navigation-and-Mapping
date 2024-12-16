@@ -46,19 +46,21 @@ namespace Algorithms
         // private readonly SimplePID yawFrontPID = new SimplePID(10f, 0, 0, 0, 0.5f);
         // private readonly SimplePID rollFrontPID = new SimplePID(1f, 0, 0, 0f, 0.1f);
 
-        private readonly SimplePID pitchPID = new SimplePID(-1f, 0, 0, 0.5f, 1f);
+        private readonly SimplePID pitchPID = new SimplePID(-1f, 0, 0, 0.2f, 1f);
         private readonly SimplePID rollRightPID = new SimplePID(-1f, 0, 0, -1f, 1f);
         private readonly SimplePID rollTunnelPID = new SimplePID(-1f, 0, 0, -1f, 1f);
         private readonly SimplePID yawPID = new SimplePID(-1f, 0, 0, -1f, 0);
-        
-        
+
+
         private readonly SimplePID pitchTurnRightPID = new SimplePID(-1f, 0, 0, 0f, 0.1f);
         private readonly SimplePID yawTurnRightPID = new SimplePID(-1f, 0, 0, 0f, 1f);
+        private readonly SimplePID rollTurnRightPID = new SimplePID(-1f, 0, 0, 0f, 0.2f);
 
 
         private enum State
         {
             RightWall,
+            RightWallYaw,
             Tunnel,
             LeftWall,
             ForwardFast,
@@ -82,6 +84,8 @@ namespace Algorithms
             {
                 case State.RightWall:
                     break;
+                case State.RightWallYaw:
+                    break;
                 case State.Tunnel:
                     break;
                 case State.LeftWall:
@@ -97,8 +101,6 @@ namespace Algorithms
                     break;
                 case State.TurnRightPart2:
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
             }
 
             state = newState;
@@ -164,8 +166,8 @@ namespace Algorithms
                 drone.RC(roll, pitch, yaw, throttle);
                 return;
             }
-            
-            Debug.Log($"State: {state}");
+
+            Debug.Log($"State: {state}. Right: {right}, Left: {left}, Front: {front}");
 
             switch (state)
             {
@@ -176,41 +178,49 @@ namespace Algorithms
                     if (right > 3)
                     {
                         SetState(State.TurnRight);
-                    }
-
-                    if (right + left < 3)
+                    } else if (right + left < 3)
                     {
                         SetState(State.Tunnel);
-                    }
-
-                    if (front < 1)
+                    } else if (front < 1)
                     {
                         SetState(State.TurnLeft);
                     }
+
                     break;
                 case State.Tunnel:
                     pitch = 1f;
                     roll = rollTunnelPID.Get(0, right - left, Time.fixedDeltaTime);
                     yaw = yawPID.Get(5, front, Time.fixedDeltaTime);
-                    
+
                     if (right > 3)
                     {
                         SetState(State.TurnRight);
-                    }
-
-                    if (right + left > 3)
+                    } else if (right + left > 3)
                     {
                         SetState(State.RightWall);
-                    }
-
-                    if (front < 1)
+                    } else if (front < 1)
                     {
                         SetState(State.TurnLeft);
                     }
+
                     break;
                 case State.ForwardFast:
                     break;
                 case State.EmergencyStop:
+                    break;
+                case State.RightWallYaw:
+                    pitch = 0.2f;
+                    yaw = yawTurnRightPID.Get(0.8f, right, Time.fixedDeltaTime);
+                    roll = rollTurnRightPID.Get(0.9f, right, Time.fixedDeltaTime);
+                    if (front > 5)
+                    {
+                        SetState(State.RightWall);
+                    }
+
+                    if (left > 2 && front < 0.5f)
+                    {
+                        SetState(State.TurnLeft);
+                    }
                     break;
                 case State.TurnLeft:
                     pitch = 0;
@@ -220,14 +230,17 @@ namespace Algorithms
                     {
                         SetState(State.RightWall);
                     }
+
                     break;
                 case State.TurnRight:
-                    pitch = 0.1f;
-                    yaw = yawTurnRightPID.Get(1, right, Time.fixedDeltaTime);
-                    if (Time.time - startTurnRightTime > 3f)
+                    pitch = 0f;
+                    roll = 0.2f;
+                    yaw = 1f;
+                    if (right < 1.2f)
                     {
-                        SetState(State.RightWall);
+                        SetState(State.RightWallYaw);
                     }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
