@@ -13,6 +13,11 @@ namespace Drone.Sensors
         private GyroNoise yawNoise;
         public float Yaw => yawNoise.Value;
 
+        /// <summary>
+        /// Orientation, Pitch Yaw Roll (rotation in X Y Z)
+        /// </summary>
+        public Vector3 Orientation => new Vector3(Pitch, Yaw, Roll);
+
         private Rigidbody rb;
 
         private void Awake()

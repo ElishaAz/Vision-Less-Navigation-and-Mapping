@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Drone;
 using UnityEngine;
 
@@ -12,6 +14,7 @@ namespace Mapping
         [SerializeField] private GameObject edgePrefab;
         [SerializeField] private int maxBackMerge = 5;
         [SerializeField] private float mergeDistance = 1f;
+        [SerializeField] private float mergeTime = 10f;
         [SerializeField] private float interval = 0.1f;
 
         private readonly struct Sample
@@ -20,54 +23,106 @@ namespace Mapping
             public readonly float Left;
             public readonly float Up;
             public readonly float Down;
-            public readonly float Forward;
+            public readonly float Front;
             public readonly float Back;
 
-            public Sample(float right, float left, float up, float down, float forward, float back)
+            public readonly Vector3 Position;
+            public readonly Vector3 Orientation;
+            public readonly float Time;
+
+            public Sample(
+                float right, float left, float up, float down, float front, float back,
+                Vector3 position, Vector3 orientation, float time
+            )
             {
                 Right = right;
                 Left = left;
                 Up = up;
                 Down = down;
-                Forward = forward;
+                Front = front;
                 Back = back;
+
+                Position = position;
+                Orientation = orientation;
+                Time = time;
             }
         }
 
         private class Node
         {
-            public Vector3 Position;
-            public int Count;
-            public GameObject Prefab;
-            public Sample Before;
-            public Sample After;
+            private readonly List<(Sample, Sample)> samples = new List<(Sample, Sample)>();
+
+            /// <summary>
+            /// A list of samples, before and after the inconsistency.
+            /// </summary>
+            public IReadOnlyList<(Sample, Sample)> Samples => samples;
+
+            public void AddSample(Sample before, Sample after)
+            {
+                samples.Add((before, after));
+                Position = Samples.Aggregate(Vector3.zero,
+                               (current, sample) => current + sample.Item2.Position)
+                           / Samples.Count;
+
+                prefab.transform.position = Position + DroneView.DroneView.Offset;
+            }
+
+            /// <summary>
+            /// Average of all After positions
+            /// </summary>
+            public Vector3 Position { get; private set; }
+
+            private GameObject prefab;
+
+            public Node(GameObject prefab)
+            {
+                this.prefab = prefab;
+            }
         }
 
         private class Edge
         {
             public Node From;
             public Node To;
-            public GameObject Prefab;
+            private readonly List<Sample> samples = new List<Sample>();
+            public IReadOnlyList<Sample> Samples => samples;
+
+            private GameObject prefab;
+
+            public Edge(Node from, Node to, GameObject prefab)
+            {
+                From = from;
+                To = to;
+                this.prefab = prefab;
+            }
+
+            public void AddSample(Sample sample)
+            {
+                samples.Add(sample);
+            }
 
             public void UpdatePosition()
             {
-                Prefab.transform.position = (From.Position + To.Position) / 2 + DroneView.DroneView.Offset;
-                Prefab.transform.rotation = Quaternion.LookRotation(To.Position - From.Position);
-                Prefab.transform.localScale = new Vector3(1, 1, Vector3.Distance(From.Position, To.Position));
+                prefab.transform.position = (From.Position + To.Position) / 2 + DroneView.DroneView.Offset;
+                prefab.transform.rotation = Quaternion.LookRotation(To.Position - From.Position);
+                prefab.transform.localScale = new Vector3(1, 1, Vector3.Distance(From.Position, To.Position));
             }
         }
 
         private readonly List<Node> nodes = new List<Node>();
         private readonly List<Edge> edges = new List<Edge>();
         private Node lastNode = null;
+        private Edge currentEdge = null;
 
         private Sample lastSample;
 
         private void Start()
         {
-            lastSample = new Sample(sensors.right.DistanceNormalized, sensors.left.DistanceNormalized,
+            lastSample = new Sample(
+                sensors.right.DistanceNormalized, sensors.left.DistanceNormalized,
                 sensors.up.DistanceNormalized, sensors.down.DistanceNormalized,
-                sensors.front.DistanceNormalized, sensors.back.DistanceNormalized);
+                sensors.front.DistanceNormalized, sensors.back.DistanceNormalized,
+                sensors.DronePosition, sensors.gyro.Orientation, Time.time);
         }
 
 
@@ -78,10 +133,13 @@ namespace Mapping
             nextUpdate -= Time.fixedDeltaTime;
             if (nextUpdate > 0) return;
             nextUpdate = interval;
-            var sample = new Sample(sensors.right.DistanceNormalized, sensors.left.DistanceNormalized,
+            var sample = new Sample(
+                sensors.right.DistanceNormalized, sensors.left.DistanceNormalized,
                 sensors.up.DistanceNormalized, sensors.down.DistanceNormalized,
-                sensors.front.DistanceNormalized, sensors.back.DistanceNormalized);
-            var position = sensors.DronePosition;
+                sensors.front.DistanceNormalized, sensors.back.DistanceNormalized,
+                sensors.DronePosition, sensors.gyro.Orientation, Time.time);
+
+            currentEdge?.AddSample(sample);
 
             if (Mathf.Abs(sample.Right - lastSample.Right) > threshold ||
                 Mathf.Abs(sample.Left - lastSample.Left) > threshold)
@@ -90,62 +148,35 @@ namespace Mapping
                 for (int i = nodes.Count - 1; i >= Mathf.Max(nodes.Count - maxBackMerge, 0); i--)
                 {
                     var lastIncon = nodes[i];
-                    if (Vector3.Distance(lastIncon.Position, position) < mergeDistance)
+                    if (Vector3.Distance(lastIncon.Position, sample.Position) > mergeDistance
+                        || sample.Time - lastIncon.Samples.Last().Item2.Time > mergeTime) continue;
+
+                    lastIncon.AddSample(lastSample, sample);
+
+                    foreach (var edge in edges.Where(edge => edge.From == lastIncon || edge.To == lastIncon))
                     {
-                        // TODO: add time check
-                        // Weighted average
-                        lastIncon.Position = (lastIncon.Position * lastIncon.Count + position) / (lastIncon.Count + 1);
-                        lastIncon.Count++;
-                        lastIncon.Prefab.transform.position = lastIncon.Position + DroneView.DroneView.Offset;
-
-                        foreach (var edge in edges)
-                        {
-                            if (edge.From == lastIncon || edge.To == lastIncon)
-                            {
-                                edge.UpdatePosition();
-                            }
-                        }
-
-                        if (lastNode != lastIncon)
-                        {
-                            var edge = new Edge
-                            {
-                                From = (Node)lastNode,
-                                To = lastIncon,
-                                Prefab = Instantiate(edgePrefab, transform)
-                            };
-                            edge.UpdatePosition();
-                            edges.Add(edge);
-                        }
-
-                        lastNode = lastIncon;
-                        merged = true;
-                        Debug.Log($"Merged {lastIncon.Position}");
-                        break;
+                        edge.UpdatePosition();
                     }
+
+                    if (lastNode != lastIncon)
+                    {
+                        CreateEdge(lastNode, lastIncon, new List<Sample> { lastSample, sample });
+                    }
+
+                    lastNode = lastIncon;
+                    merged = true;
+                    Debug.Log($"Merged {lastIncon.Position}");
+                    break;
                 }
 
                 if (!merged)
                 {
-                    var node = new Node
-                    {
-                        Position = position,
-                        Count = 1,
-                        Before = lastSample,
-                        After = sample,
-                        Prefab = Instantiate(nodePrefab, sensors.DronePosition + DroneView.DroneView.Offset,
-                            Quaternion.identity, transform)
-                    };
+                    var node = new Node(Instantiate(nodePrefab, transform));
+                    node.AddSample(lastSample, sample);
+
                     if (lastNode != null)
                     {
-                        var edge = new Edge
-                        {
-                            From = (Node)lastNode,
-                            To = node,
-                            Prefab = Instantiate(edgePrefab, transform)
-                        };
-                        edge.UpdatePosition();
-                        edges.Add(edge);
+                        CreateEdge(lastNode, node, new List<Sample> { lastSample, sample });
                     }
 
                     nodes.Add(node);
@@ -154,6 +185,19 @@ namespace Mapping
             }
 
             lastSample = sample;
+        }
+
+        private void CreateEdge(Node from, Node to, List<Sample> samples)
+        {
+            var edge = new Edge(from, to, Instantiate(edgePrefab, transform));
+            foreach (var sample in samples)
+            {
+                edge.AddSample(sample);
+            }
+
+            edge.UpdatePosition();
+            edges.Add(edge);
+            currentEdge = edge;
         }
     }
 }
