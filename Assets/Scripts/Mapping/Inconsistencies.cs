@@ -187,12 +187,55 @@ namespace Mapping
             lastSample = sample;
         }
 
+        private float SimilarEdge(Edge a, Edge b)
+        {
+            var diff = Vector3.Distance(a.Samples.First().Position, b.Samples.First().Position);
+            DTWDistance<Sample> distance = (left, right) => Vector3.Distance(left.Position, right.Position) - diff;
+
+            var dtw = new DTW<Sample>(a.Samples, b.Samples, distance);
+            return dtw.ComputeDTW();
+        }
+
+        private bool SamplesSimilar(Sample left, Sample right)
+        {
+            if (Mathf.Abs(left.Time - right.Time) <= mergeTime)
+            {
+                // Samples are close in time. There probably isn't a lot of error in the OF
+                if (Vector3.Distance(left.Position, right.Position) <= mergeDistance)
+                {
+                    return true;
+                }
+            }
+
+
+            return false;
+        }
+
         private void CreateEdge(Node from, Node to, List<Sample> samples)
         {
             var edge = new Edge(from, to, Instantiate(edgePrefab, transform));
             foreach (var sample in samples)
             {
                 edge.AddSample(sample);
+            }
+
+            if (edges.Count >= 2)
+            {
+                Edge similarEdge = null;
+                var dist = float.MaxValue;
+                var index = -1;
+                for (int i = 0; i < edges.Count - 1; i++)
+                {
+                    var currentDist = SimilarEdge(edges[i], currentEdge);
+                    if (currentDist < dist)
+                    {
+                        similarEdge = edges[i];
+                        dist = currentDist;
+                        index = i;
+                    }
+                }
+
+                Debug.Log($"Similar edge: {index}, {dist}, {similarEdge}");
             }
 
             edge.UpdatePosition();

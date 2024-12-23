@@ -80,6 +80,7 @@ namespace Algorithms
             TurnLeft,
             TurnRight,
             TurnRightPart2,
+            NoSensorsForward,
         }
 
         private State state;
@@ -185,14 +186,15 @@ namespace Algorithms
             //     yaw = 0f;
             // }
 
-            if (front > 5 && right > 5 && left > 5)
-            {
-                pitch = 1f;
-                drone.RC(roll, pitch, yaw, throttle);
-                return;
-            }
+            // if (front > 5 && right > 5 && left > 5)
+            // {
+            //     pitch = 1f;
+            //     drone.RC(roll, pitch, yaw, throttle);
+            //     return;
+            // }
 
             HUD.AlgoLog = $"State: {state}";
+            Debug.Log($"State: {state}");
 
             switch (state)
             {
@@ -200,6 +202,7 @@ namespace Algorithms
                     pitch = pitchPID.Get(2, front, Time.fixedDeltaTime);
                     roll = rollRightPID.Get(1.2f, right, Time.fixedDeltaTime);
                     yaw = yawPID.Get(5, front, Time.fixedDeltaTime);
+
                     if (right > 3.5f)
                     {
                         SetState(State.TurnRight);
@@ -207,21 +210,26 @@ namespace Algorithms
                     else
                     {
                         turnRightDistanceBeforeTurn = right;
-                    }
 
-                    if (right + left < 3)
-                    {
-                        SetState(State.Tunnel);
-                    }
-                    else if (front < 1)
-                    {
-                        SetState(State.RightWallYawTurnLeft);
+                        if (right + left < 3)
+                        {
+                            SetState(State.Tunnel);
+                        }
+                        else if (front < 1)
+                        {
+                            SetState(State.RightWallYawTurnLeft);
+                        }
                     }
 
                     break;
                 case State.Tunnel:
                     pitch = pitchTunnelPID.Get(0.9f, front, Time.fixedDeltaTime);
                     roll = rollTunnelPID.Get(0, right - left, Time.fixedDeltaTime);
+
+                    if (pitch < 0.2f)
+                    {
+                        yaw = roll / 2;
+                    }
                     // yaw = yawPID.Get(5, front, Time.fixedDeltaTime);
 
                     if (right > 3.5f)
@@ -334,6 +342,11 @@ namespace Algorithms
                         SetState(defaultState);
                     }
 
+                    if (front < 0.2f)
+                    {
+                        pitch = -0.1f;
+                    }
+
                     break;
                 case State.TurnRight:
                     pitch = 0f;
@@ -344,6 +357,18 @@ namespace Algorithms
                         SetState(State.RightWallYawFixedPitch);
                     }
 
+                    if (Time.time - lastStateChangeTime > 3f)
+                    {
+                        SetState(State.NoSensorsForward);
+                    }
+
+                    break;
+                case State.NoSensorsForward:
+                    pitch = 1;
+                    if (front < 3f || right < 3f || left < 3f)
+                    {
+                        SetState(defaultState);
+                    }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
