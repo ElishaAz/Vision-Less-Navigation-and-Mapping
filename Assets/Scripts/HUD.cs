@@ -8,6 +8,8 @@ public class HUD : MonoBehaviour
 {
 	[SerializeField] private DroneSensors sensors;
 
+	public static string AlgoLog;
+
 	private void OnGUI()
 	{
 		GUI.color = Color.black;
@@ -26,6 +28,7 @@ public class HUD : MonoBehaviour
 		GUILayout.Label($"Up: {sensors.up.Distance,8:0.00}");
 		GUILayout.Label($"Down: {sensors.down.Distance,8:0.00}");
 		GUILayout.Label($"Crash count: {sensors.crashDetector.Crashes}");
+		GUILayout.Label(AlgoLog);
 		if (sensors.crashDetector.InCrash)
 		{
 			GUI.color = Color.red;

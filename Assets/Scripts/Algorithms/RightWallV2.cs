@@ -192,7 +192,7 @@ namespace Algorithms
                 return;
             }
 
-            Debug.Log($"State: {state}. Right: {right}, Left: {left}, Front: {front}");
+            HUD.AlgoLog = $"State: {state}";
 
             switch (state)
             {
@@ -307,6 +307,7 @@ namespace Algorithms
                     {
                         roll = rollTurnRightPID.Get(0, right - left, Time.fixedDeltaTime);
                     }
+
                     yaw = yawTurnRightPID.Get(0.8f, right, Time.fixedDeltaTime);
                     if (front > 5)
                     {
