@@ -1,46 +1,95 @@
+using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using UnityEngine;
 
 namespace Mapping
 {
-    public static class MyDTW<T>
+    public static class MyDTW
     {
-        public static float DTW(IReadOnlyList<T> left, IReadOnlyList<T> right, DTWDistance<T> squareDistance)
+        public static (float, List<(int, int)>) DTW<T>(IReadOnlyList<T> left, IReadOnlyList<T> right,
+            DTWDistance<T> squareDistance)
         {
-            var R = new float[right.Count, left.Count];
+            var cost = new float[left.Count, right.Count];
+            var path = new int[left.Count, right.Count]; // 0 - both, 1 - i, 2 - j
 
             for (var i = 0; i < left.Count; i++)
             {
                 for (var j = 0; j < right.Count; j++)
                 {
-                    R[i, j] = squareDistance(left[i], right[j]);
-                    if (i < 0 || j < 0)
+                    cost[i, j] = squareDistance(left[i], right[j]);
+                    if (i <= 0 || j <= 0)
                     {
                         if (i > 0)
                         {
-                            R[i, j] += R[i - 1, j];
+                            cost[i, j] += cost[i - 1, j];
+                            path[i, j] = 1;
                         }
                         else if (j > 0)
                         {
-                            R[i, j] += R[i, j - 1];
+                            cost[i, j] += cost[i, j - 1];
+                            path[i, j] = 2;
                         }
                     }
                     else
                     {
-                        R[i, j] += Mathf.Min(R[i - 1, j], R[i, j - 1], R[i - 1, j - 1]);
+                        var (min, index) = MinIndex(cost[i - 1, j - 1], cost[i - 1, j], cost[i, j - 1]);
+
+                        cost[i, j] += min;
+                        path[i, j] = index;
                     }
                 }
             }
 
-            return Mathf.Sqrt(R[-1, -1]);
-        }
-        
-        
+            var bestPath = new List<(int, int)>();
+            {
+                var i = left.Count - 1;
+                var j = right.Count - 1;
+                bestPath.Add((i, j));
+                while (true)
+                {
+                    if (i == 0 && j == 0)
+                        break;
+                    if (i < 0 || j < 0)
+                    {
+                        // error
+                    }
 
-        private static float Min(float a, float b, float c)
+                    switch (path[i, j])
+                    {
+                        case 0:
+                            bestPath.Add((i - 1, j - 1));
+                            i -= 1;
+                            j -= 1;
+                            break;
+                        case 1:
+                            bestPath.Add((i - 1, j));
+                            i -= 1;
+                            break;
+                        case 2:
+                            bestPath.Add((i, j - 1));
+                            j -= 1;
+                            break;
+                    }
+                }
+            }
+            bestPath.Reverse();
+            return ((float)Math.Sqrt(cost[left.Count - 1, right.Count - 1]), bestPath);
+        }
+
+        private static (float, int) MinIndex(params float[] array)
         {
-            return Mathf.Min(a, b, c);
+            var minValue = float.MaxValue;
+            var index = -1;
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (array[i] < minValue)
+                {
+                    minValue = array[i];
+                    index = i;
+                }
+            }
+
+            return (minValue, index);
         }
     }
 }
