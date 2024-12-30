@@ -7,7 +7,7 @@ namespace Mapping
     {
         public delegate float Distance<in T>(T left, T right);
 
-        public static float FD2<T>(List<T> left, List<T> right, Distance<T> distance)
+        public static float FD<T>(List<T> left, List<T> right, Distance<T> distance)
         {
             var ca = new float[left.Count, right.Count];
 
