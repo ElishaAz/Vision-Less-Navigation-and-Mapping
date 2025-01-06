@@ -10,6 +10,7 @@ namespace Mapping
     {
         [SerializeField] private DroneSensors sensors;
         [SerializeField] private float threshold = 1f;
+        [SerializeField] private float maxDistance = 2f;
         [SerializeField] private GameObject nodePrefab;
         [SerializeField] private GameObject edgePrefab;
         [SerializeField] private int maxBackMerge = 5;
@@ -141,8 +142,7 @@ namespace Mapping
 
             currentEdge?.AddSample(sample);
 
-            if (Mathf.Abs(sample.Right - lastSample.Right) > threshold ||
-                Mathf.Abs(sample.Left - lastSample.Left) > threshold)
+            if (IsIncon(sample.Left, lastSample.Left) || IsIncon(sample.Right, lastSample.Right))
             {
                 bool merged = false;
                 for (int i = nodes.Count - 1; i >= Mathf.Max(nodes.Count - maxBackMerge, 0); i--)
@@ -185,6 +185,11 @@ namespace Mapping
             }
 
             lastSample = sample;
+        }
+
+        private bool IsIncon(float current, float last)
+        {
+            return Mathf.Abs(current - last) > threshold && (current < maxDistance || last < maxDistance);
         }
 
         private float SimilarEdge(Edge a, Edge b)
