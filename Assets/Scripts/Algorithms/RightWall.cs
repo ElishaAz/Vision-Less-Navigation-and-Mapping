@@ -4,258 +4,91 @@ using UnityEngine;
 
 namespace Algorithms
 {
-	public class RightWall : MonoBehaviour
-	{
-		[SerializeField] private DroneSensors sensors;
-		[SerializeField] private Drone.Drone drone;
+    public class RightWall : MonoBehaviour
+    {
+        [SerializeField] private DroneSensors sensors;
+        [SerializeField] private Drone.Drone drone;
 
-		[SerializeField] private float frontEmergency = 1f;
-		[SerializeField] private float targetFront = 2f;
-		[SerializeField] private float frontVeryFar = 5f;
+        enum State
+        {
+            RightWall,
+            TurnLeft
+        }
 
-		[SerializeField] private float tunnel = 3f;
-		[SerializeField] private float rightFar = 3f;
-		[SerializeField] private float rightOk = 2f;
-		[SerializeField] private float rightClose = 1f;
-		[SerializeField] private float frontClose = 2f;
+        private State state;
 
-		private float roll, pitch, yaw, thrust;
+        private void Awake()
+        {
+        }
 
-		private float front = float.PositiveInfinity, right = float.PositiveInfinity, left = float.PositiveInfinity;
+        private void Start()
+        {
+        }
 
-		private readonly PID tunnelPID = new PID(0.5f, 0, 0, 0, 1, -1);
-		private readonly PID rightPID = new PID(0.1f, 0, 0, 0, 0.1f, -0.1f);
+        private void FixedUpdate()
+        {
+            float roll = 0;
+            float pitch = 0;
+            float yaw = 0;
 
-		private enum LidarMode
-		{
-			Emergency,
-			Close,
-			Standard,
-			Far,
-			VeryFar
-		}
+            float frontRight = sensors.frontRight.DistanceNormalized;
+            float frontLeft = sensors.frontLeft.DistanceNormalized;
+            float backRight = sensors.backRight.DistanceNormalized;
 
-		private LidarMode frontMode, rightMode;
+            float right = (frontRight + backRight) / 2;
 
-		private enum PitchYawMode
-		{
-			Emergency,
-			RightFar,
-			RightFarAndFrontClose,
-			FrontClose,
-			FrontWasClose,
-			FrontVeryFar,
-			FrontFar,
-			Standard
-		}
+            switch (state)
+            {
+                case State.RightWall:
+                    if (frontRight > backRight)
+                    {
+                        yaw = 1;
+                    }
+                    else
+                    {
+                        yaw = -1;
+                    }
 
-		private PitchYawMode pitchYawMode = PitchYawMode.Standard;
+                    if (right > 1)
+                    {
+                        roll = 0.1f;
+                    }
+                    else
+                    {
+                        roll = -0.1f;
+                    }
 
-		private enum RollMode
-		{
-			Tunnel,
-			RightEmergency,
-			LeftEmergency,
-			Standard
-		}
-		
-		private RollMode rollMode = RollMode.Standard;
+                    pitch = 0.2f;
 
-		private float InferInfinitySign(float lastValue, float currentValue)
-		{
-			if (float.IsPositiveInfinity(currentValue))
-			{
-				if (front < 2)
-				{
-					return float.NegativeInfinity;
-				}
-				else
-				{
-					return float.PositiveInfinity;
-				}
-			}
+                    if (frontRight < 1 && frontLeft < 1)
+                    {
+                        state = State.TurnLeft;
+                    }
 
-			return currentValue;
-		}
+                    break;
+                case State.TurnLeft:
+                    yaw = -1;
+                    pitch = 0;
+                    if (frontRight > 1.2)
+                    {
+                        state = State.RightWall;
+                    }
 
-		private float LimitLidar(float value, float max)
-		{
-			if (float.IsNaN(value) || float.IsInfinity(value))
-			{
-				return max;
-			}
+                    if (right > 1)
+                    {
+                        roll = 0.1f;
+                    }
+                    else
+                    {
+                        roll = -0.1f;
+                    }
 
-			return value;
-		}
+                    break;
+            }
 
-		private void HandlePitchYaw()
-		{
-			if (front <= frontEmergency)
-			{
-				pitchYawMode = PitchYawMode.Emergency;
-			}
-			else
-			{
-				if (right > rightFar)
-				{
-					if (front < frontClose)
-					{
-						pitchYawMode = PitchYawMode.RightFarAndFrontClose;
-					}
-					else
-					{
-						pitchYawMode = PitchYawMode.RightFar;
-					}
-				} else if (front < frontClose)
-				{
-					pitchYawMode = PitchYawMode.FrontClose;
-				}
-				else
-				{
-					if (front > frontVeryFar)
-					{
-						pitchYawMode = PitchYawMode.FrontVeryFar;
-					}
-					else if (front > targetFront)
-					{
-						pitchYawMode = PitchYawMode.FrontFar;
-					}
-					else
-					{
-						pitchYawMode = PitchYawMode.Standard;
-					}
-				}
-			}
+            HUD.AlgoLog = $"State: {state}. Pitch: {pitch}. Yaw: {yaw}. Roll: {roll}";
 
-			switch (pitchYawMode)
-			{
-				case PitchYawMode.Emergency:
-					pitch = -0.1f;
-					yaw = -0.1f;
-					break;
-				case PitchYawMode.RightFar:
-					pitch = 0.1f;
-					yaw = 1;
-					break;
-				case PitchYawMode.RightFarAndFrontClose:
-					pitch = 0.05f;
-					yaw = 1;
-					break;
-				case PitchYawMode.FrontClose:
-					pitch = 0;
-					yaw = -0.5f;
-					break;
-				case PitchYawMode.FrontVeryFar:
-					yaw = 0;
-					pitch = 1;
-					break;
-				case PitchYawMode.FrontFar:
-					yaw = 0;
-					pitch = 0.5f;
-					break;
-				case PitchYawMode.Standard:
-					yaw = 0;
-					pitch = 0.1f;
-					break;
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-		}
-
-		private void HandleRoll()
-		{
-			if (right < rightClose)
-			{
-				rollMode = RollMode.RightEmergency;
-			} else if (left < rightClose)
-			{
-				rollMode = RollMode.LeftEmergency;
-			}
-			else if (right + left < tunnel)
-			{
-				rollMode = RollMode.Tunnel;
-			}
-			else
-			{
-				rollMode = RollMode.Standard;
-			}
-
-			switch (rollMode)
-			{
-				case RollMode.Tunnel:
-					rightPID.ResetController();
-					roll = tunnelPID.PID_iterate(0, left - right, Time.fixedDeltaTime);
-					break;
-				case RollMode.Standard:
-					tunnelPID.ResetController();
-					roll = -rightPID.PID_iterate(rightOk, right, Time.fixedDeltaTime);
-					break;
-				case RollMode.RightEmergency:
-					roll = -0.2f;
-					break;
-				case RollMode.LeftEmergency:
-					roll = 0.2f;
-					break;
-			}
-		}
-
-		private void FixedUpdate()
-		{
-			// front = InferInfinitySign(front, sensors.front.Distance);
-			// right = InferInfinitySign(right, sensors.right.Distance);
-			// left = InferInfinitySign(left, sensors.left.Distance);
-			front = LimitLidar(sensors.front.Distance, sensors.front.MaxDistance);
-			right = LimitLidar(sensors.right.Distance, sensors.right.MaxDistance);
-			left = LimitLidar(sensors.left.Distance, sensors.left.MaxDistance);
-
-			// if (front < frontEmergency)
-			// {
-			// 	frontMode = LidarMode.Emergency;
-			// }
-			// else if (front < frontClose)
-			// {
-			// 	frontMode = LidarMode.Close;
-			// } else if (front > targetFront * 2)
-			// {
-			// 	frontMode = LidarMode.VeryFar;
-			// } else if (front > targetFront)
-			// {
-			// 	frontMode = LidarMode.Far;
-			// }
-			// else
-			// {
-			// 	frontMode = LidarMode.Standard;
-			// }
-			//
-			// if (right < rightOk / 2)
-			// {
-			// 	rightMode = LidarMode.Close;
-			// } else if (right > rightFar)
-			// {
-			// 	rightMode = LidarMode.Far;
-			// }
-			// else
-			// {
-			// 	rightMode = LidarMode.Standard;
-			// }
-			//
-			// if (frontMode == LidarMode.Emergency)
-			// {
-			// 	pitch = -0.1f;
-			// 	yaw = -0.5f;
-			// }
-			// else
-			// {
-			// 	
-			// }
-
-			HandlePitchYaw();
-
-			HandleRoll();
-			
-			Debug.Log($"Modes: {pitchYawMode}, {rollMode}, front: {front}, right: {right}, left: {left}");
-
-			drone.RC(roll, pitch, yaw, thrust);
-		}
-	}
+            drone.RC(roll, pitch, yaw, 0);
+        }
+    }
 }

@@ -21,10 +21,10 @@ public class HUD : MonoBehaviour
 		GUILayout.Space(10);
 		GUILayout.Label("Lidars:");
 		GUILayout.BeginVertical();
-		GUILayout.Label($"Front: {sensors.front.Distance,8:0.00}");
-		GUILayout.Label($"Back: {sensors.back.Distance,8:0.00}");
-		GUILayout.Label($"Right: {sensors.right.Distance,8:0.00}");
-		GUILayout.Label($"Left: {sensors.left.Distance,8:0.00}");
+		GUILayout.Label($"Front Right: {sensors.frontRight.Distance,8:0.00}");
+		GUILayout.Label($"Front Left: {sensors.frontLeft.Distance,8:0.00}");
+		GUILayout.Label($"Back Right: {sensors.backRight.Distance,8:0.00}");
+		GUILayout.Label($"Back Left: {sensors.backLeft.Distance,8:0.00}");
 		GUILayout.Label($"Up: {sensors.up.Distance,8:0.00}");
 		GUILayout.Label($"Down: {sensors.down.Distance,8:0.00}");
 		GUILayout.Label($"Crash count: {sensors.crashDetector.Crashes}");

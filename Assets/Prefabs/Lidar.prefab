@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44c5ed3d6f5465e51a794df658cd3eba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minDistance: 0.1
+  minDistance: 0.001
   maxDistance: 6
   mask:
     serializedVersion: 2

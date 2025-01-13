@@ -81,8 +81,8 @@ namespace Mapping
         private void AddPoint()
         {
             CurrentPoint = new DataPoint(Time.time - startTime, sensors.DronePosition, sensors.DroneRotation,
-                left: sensors.left.Distance, right: sensors.right.Distance, front: sensors.front.Distance,
-                back: sensors.back.Distance,
+                left: sensors.frontLeft.Distance, right: sensors.frontRight.Distance, front: sensors.backRight.Distance,
+                back: sensors.backLeft.Distance,
                 up: sensors.up.Distance, down: sensors.down.Distance);
 
             history.Add(CurrentPoint);

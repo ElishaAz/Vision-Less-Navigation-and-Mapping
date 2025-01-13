@@ -120,9 +120,9 @@ namespace Mapping
         private void Start()
         {
             lastSample = new Sample(
-                sensors.right.DistanceNormalized, sensors.left.DistanceNormalized,
+                sensors.frontRight.DistanceNormalized, sensors.frontLeft.DistanceNormalized,
                 sensors.up.DistanceNormalized, sensors.down.DistanceNormalized,
-                sensors.front.DistanceNormalized, sensors.back.DistanceNormalized,
+                sensors.backRight.DistanceNormalized, sensors.backLeft.DistanceNormalized,
                 sensors.DronePosition, sensors.gyro.Orientation, Time.time);
         }
 
@@ -135,9 +135,9 @@ namespace Mapping
             if (nextUpdate > 0) return;
             nextUpdate = interval;
             var sample = new Sample(
-                sensors.right.DistanceNormalized, sensors.left.DistanceNormalized,
+                sensors.frontRight.DistanceNormalized, sensors.frontLeft.DistanceNormalized,
                 sensors.up.DistanceNormalized, sensors.down.DistanceNormalized,
-                sensors.front.DistanceNormalized, sensors.back.DistanceNormalized,
+                sensors.backRight.DistanceNormalized, sensors.backLeft.DistanceNormalized,
                 sensors.DronePosition, sensors.gyro.Orientation, Time.time);
 
             currentEdge?.AddSample(sample);

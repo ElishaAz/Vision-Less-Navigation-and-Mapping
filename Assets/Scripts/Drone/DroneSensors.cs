@@ -1,18 +1,20 @@
 using System;
 using Drone.Sensors;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Compass = Drone.Sensors.Compass;
 
 namespace Drone
 {
     public class DroneSensors : MonoBehaviour
     {
-        [SerializeField] public Lidar right;
-        [SerializeField] public Lidar left;
+        [SerializeField] public Lidar frontRight;
+        [SerializeField] public Lidar frontLeft;
 
-        [SerializeField] public Lidar front;
+        [SerializeField] public Lidar backRight;
 
-        [SerializeField] public Lidar back;
+        [SerializeField] public Lidar backLeft;
+
         [SerializeField] public Lidar up;
         [SerializeField] public Lidar down;
 
@@ -32,7 +34,7 @@ namespace Drone
 
         private void Awake()
         {
-            Lidars = new[] { right, left, front, back, up, down };
+            Lidars = new[] { frontRight, frontLeft, backRight, backLeft, up, down };
         }
 
         private void FixedUpdate()
