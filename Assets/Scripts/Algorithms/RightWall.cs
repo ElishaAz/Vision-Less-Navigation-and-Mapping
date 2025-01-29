@@ -12,13 +12,16 @@ namespace Algorithms
         enum State
         {
             RightWall,
-            TurnLeft
+            TurnLeft,
+            TurnRight
         }
 
         private State state;
 
         private SimplePID yawPID = new SimplePID(1, 0, 0, -1, 1);
         private SimplePID rollPID = new SimplePID(1, 0, 0, -0.1f, 0.1f);
+        
+        private SimplePID yawTurnPID = new SimplePID(1, 0, 0, -1f, 1f);
 
         private void Awake()
         {
@@ -27,6 +30,11 @@ namespace Algorithms
         private void Start()
         {
         }
+
+        private float lastFrontRight;
+        private Vector3 turnRightPivot;
+        private Vector3 turnRightStart;
+        private float turnRightDistance;
 
         private void FixedUpdate()
         {
@@ -53,6 +61,17 @@ namespace Algorithms
                         state = State.TurnLeft;
                     }
 
+                    if (lastFrontRight < 1.2 && frontRight - lastFrontRight > 1)
+                    {
+                        state = State.TurnRight;
+                        turnRightStart = sensors.DronePosition;
+                        turnRightPivot = sensors.DronePosition + (sensors.DroneRotation *
+                                                                     (sensors.frontRight.transform.localRotation *
+                                                                      Vector3.forward * lastFrontRight +
+                                                                      sensors.frontRight.transform.localPosition));
+                        turnRightDistance = lastFrontRight;
+                    }
+
                     break;
                 case State.TurnLeft:
                     yaw = -1;
@@ -66,7 +85,22 @@ namespace Algorithms
                     roll = -rollPID.Get(1, right, Time.fixedDeltaTime);
 
                     break;
+                case State.TurnRight:
+                    yaw = yawTurnPID.Get(1, Vector3.Distance(sensors.DronePosition, turnRightPivot), Time.fixedDeltaTime);
+                    roll = 0;
+                    pitch = 0.2f;
+
+                    if (frontRight < 1.2 || Vector3.Distance(sensors.DronePosition, turnRightStart)> 1.8 * turnRightDistance)
+                    {
+                        state = State.RightWall;
+                        yawPID.Reset();
+                        rollPID.Reset();
+                    }
+
+                    break;
             }
+
+            lastFrontRight = frontRight;
 
             HUD.AlgoLog = $"State: {state}.\nPitch: {pitch:F}. Yaw: {yaw:F}. Roll: {roll:F}";
 
