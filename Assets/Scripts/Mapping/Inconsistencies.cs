@@ -8,6 +8,8 @@ namespace Mapping
 {
     public class Inconsistencies : MonoBehaviour
     {
+        public static Inconsistencies Instance;
+
         [SerializeField] private DroneSensors sensors;
         [SerializeField] private float threshold = 1f;
         [SerializeField] private float maxDistance = 2f;
@@ -18,7 +20,7 @@ namespace Mapping
         [SerializeField] private float mergeTime = 10f;
         [SerializeField] private float interval = 0.1f;
 
-        private readonly struct Sample
+        public readonly struct Sample
         {
             public readonly float Right;
             public readonly float Left;
@@ -49,7 +51,7 @@ namespace Mapping
             }
         }
 
-        private class Node
+        public class Node
         {
             private readonly List<(Sample, Sample)> samples = new List<(Sample, Sample)>();
 
@@ -81,7 +83,7 @@ namespace Mapping
             }
         }
 
-        private class Edge
+        public class Edge
         {
             public Node From;
             public Node To;
@@ -108,14 +110,34 @@ namespace Mapping
                 prefab.transform.rotation = Quaternion.LookRotation(To.Position - From.Position);
                 prefab.transform.localScale = new Vector3(1, 1, Vector3.Distance(From.Position, To.Position));
             }
+
+            public IReadOnlyList<Vector3> NormalizedPositions()
+            {
+                Vector3 average = Samples.Select((s) => s.Position).Aggregate((a, b) => a + b) / samples.Count;
+                return Samples.Select((s) => s.Position - average).ToList();
+            }
+
+            public void SetColor(Color color)
+            {
+                prefab.GetComponentInChildren<MeshRenderer>().material.color = color;
+            }
         }
 
         private readonly List<Node> nodes = new List<Node>();
         private readonly List<Edge> edges = new List<Edge>();
+
+        public IReadOnlyList<Node> Nodes => nodes;
+        public IReadOnlyList<Edge> Edges => edges;
+
         private Node lastNode = null;
         private Edge currentEdge = null;
 
         private Sample lastSample;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         private void Start()
         {
@@ -194,11 +216,9 @@ namespace Mapping
 
         private float SimilarEdge(Edge a, Edge b)
         {
-            var diff = Vector3.Distance(a.Samples.First().Position, b.Samples.First().Position);
-            DTWDistance<Sample> distance = (left, right) => Vector3.Distance(left.Position, right.Position) - diff;
+            DTWDistance<Vector3> distance = Vector3.Distance;
 
-            var dtw = new DTW<Sample>(a.Samples, b.Samples, distance);
-            return dtw.ComputeDTW();
+            return MyDTW.DTW(a.NormalizedPositions(), b.NormalizedPositions(), distance).Item1;
         }
 
         private bool SamplesSimilar(Sample left, Sample right)
@@ -215,6 +235,18 @@ namespace Mapping
 
             return false;
         }
+
+        private Color[] colors = new[]
+        {
+            Color.blue,
+            Color.red,
+            Color.green,
+            Color.yellow,
+            Color.cyan,
+            Color.magenta
+        };
+
+        private int currentColor = 0;
 
         private void CreateEdge(Node from, Node to, List<Sample> samples)
         {
@@ -240,7 +272,13 @@ namespace Mapping
                     }
                 }
 
-                Debug.Log($"Similar edge: {index}, {dist}, {similarEdge}");
+                if (index >= 0)
+                {
+                    currentEdge.SetColor(colors[currentColor]);
+                    similarEdge.SetColor(colors[currentColor]);
+                    currentColor = (currentColor + 1) % colors.Length;
+                    Debug.Log($"Similar edge: {index}, {dist}, {similarEdge}");
+                }
             }
 
             edge.UpdatePosition();
