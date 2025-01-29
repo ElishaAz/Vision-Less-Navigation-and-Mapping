@@ -68,7 +68,7 @@ namespace Algorithms
                     break;
             }
 
-            HUD.AlgoLog = $"State: {state}. Pitch: {pitch}. Yaw: {yaw}. Roll: {roll}";
+            HUD.AlgoLog = $"State: {state}.\nPitch: {pitch:F}. Yaw: {yaw:F}. Roll: {roll:F}";
 
             drone.RC(roll, pitch, yaw, 0);
         }

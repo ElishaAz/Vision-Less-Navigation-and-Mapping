@@ -187,8 +187,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2496600485853399325}
-  - component: {fileID: 7217918870097887193}
-  - component: {fileID: 2152719015556791020}
+  - component: {fileID: 6751084600735803986}
   - component: {fileID: 317637467296337126}
   - component: {fileID: 3085994043904529954}
   - component: {fileID: 5333918683711843794}
@@ -230,29 +229,7 @@ Transform:
   - {fileID: 2721296697047534200}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7217918870097887193
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5027716066939427826}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a5566b34c6a5453b9b7c203608c5116c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sensors: {fileID: 3085994043904529954}
-  drone: {fileID: 317637467296337126}
-  frontEmergency: 0.4
-  targetFront: 1.2
-  frontVeryFar: 5
-  tunnel: 1.5
-  rightFar: 2
-  rightOk: 1
-  rightClose: 0.2
-  frontClose: 0.7
---- !u!114 &2152719015556791020
+--- !u!114 &6751084600735803986
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -261,7 +238,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5027716066939427826}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b291d4e5f1434029ac7048218d6e73bf, type: 3}
+  m_Script: {fileID: 11500000, guid: 3f1e42d56ee7467c8175aa353423b7ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   sensors: {fileID: 3085994043904529954}
@@ -283,7 +260,7 @@ MonoBehaviour:
   maxPitchAngle: 15
   pitchSpeed: 5
   rollPitchRate: 10
-  yawRate: 45
+  yawRate: 90
   thrustSpeed: 5
 --- !u!114 &3085994043904529954
 MonoBehaviour:
