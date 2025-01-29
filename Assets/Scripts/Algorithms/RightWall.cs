@@ -17,6 +17,9 @@ namespace Algorithms
 
         private State state;
 
+        private SimplePID yawPID = new SimplePID(1, 0, 0, -1, 1);
+        private SimplePID rollPID = new SimplePID(1, 0, 0, -0.1f, 0.1f);
+
         private void Awake()
         {
         }
@@ -40,23 +43,8 @@ namespace Algorithms
             switch (state)
             {
                 case State.RightWall:
-                    if (frontRight > backRight)
-                    {
-                        yaw = 1;
-                    }
-                    else
-                    {
-                        yaw = -1;
-                    }
-
-                    if (right > 1)
-                    {
-                        roll = 0.1f;
-                    }
-                    else
-                    {
-                        roll = -0.1f;
-                    }
+                    yaw = yawPID.Get(frontRight, backRight, Time.fixedDeltaTime);
+                    roll = -rollPID.Get(1, right, Time.fixedDeltaTime);
 
                     pitch = 0.2f;
 
@@ -72,16 +60,10 @@ namespace Algorithms
                     if (frontRight > 1.2)
                     {
                         state = State.RightWall;
+                        yawPID.Reset();
                     }
 
-                    if (right > 1)
-                    {
-                        roll = 0.1f;
-                    }
-                    else
-                    {
-                        roll = -0.1f;
-                    }
+                    roll = -rollPID.Get(1, right, Time.fixedDeltaTime);
 
                     break;
             }
