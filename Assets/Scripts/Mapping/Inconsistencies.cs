@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Drone;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Mapping
 {
@@ -20,111 +21,10 @@ namespace Mapping
         [SerializeField] private float mergeTime = 10f;
         [SerializeField] private float interval = 0.1f;
 
-        public readonly struct Sample
-        {
-            public readonly float Right;
-            public readonly float Left;
-            public readonly float Up;
-            public readonly float Down;
-            public readonly float Front;
-            public readonly float Back;
-
-            public readonly Vector3 Position;
-            public readonly Vector3 Orientation;
-            public readonly float Time;
-
-            public Sample(
-                float right, float left, float up, float down, float front, float back,
-                Vector3 position, Vector3 orientation, float time
-            )
-            {
-                Right = right;
-                Left = left;
-                Up = up;
-                Down = down;
-                Front = front;
-                Back = back;
-
-                Position = position;
-                Orientation = orientation;
-                Time = time;
-            }
-        }
-
-        public class Node
-        {
-            private readonly List<(Sample, Sample)> samples = new List<(Sample, Sample)>();
-
-            /// <summary>
-            /// A list of samples, before and after the inconsistency.
-            /// </summary>
-            public IReadOnlyList<(Sample, Sample)> Samples => samples;
-
-            public void AddSample(Sample before, Sample after)
-            {
-                samples.Add((before, after));
-                Position = Samples.Aggregate(Vector3.zero,
-                               (current, sample) => current + sample.Item2.Position)
-                           / Samples.Count;
-
-                prefab.transform.position = Position + DroneView.DroneView.Offset;
-            }
-
-            /// <summary>
-            /// Average of all After positions
-            /// </summary>
-            public Vector3 Position { get; private set; }
-
-            private GameObject prefab;
-
-            public Node(GameObject prefab)
-            {
-                this.prefab = prefab;
-            }
-        }
-
-        public class Edge
-        {
-            public Node From;
-            public Node To;
-            private readonly List<Sample> samples = new List<Sample>();
-            public IReadOnlyList<Sample> Samples => samples;
-
-            private GameObject prefab;
-
-            public Edge(Node from, Node to, GameObject prefab)
-            {
-                From = from;
-                To = to;
-                this.prefab = prefab;
-            }
-
-            public void AddSample(Sample sample)
-            {
-                samples.Add(sample);
-            }
-
-            public void UpdatePosition()
-            {
-                prefab.transform.position = (From.Position + To.Position) / 2 + DroneView.DroneView.Offset;
-                prefab.transform.rotation = Quaternion.LookRotation(To.Position - From.Position);
-                prefab.transform.localScale = new Vector3(1, 1, Vector3.Distance(From.Position, To.Position));
-            }
-
-            public IReadOnlyList<Vector3> NormalizedPositions()
-            {
-                Vector3 average = Samples.Select((s) => s.Position).Aggregate((a, b) => a + b) / samples.Count;
-                return Samples.Select((s) => s.Position - average).ToList();
-            }
-
-            public void SetColor(Color color)
-            {
-                prefab.GetComponentInChildren<MeshRenderer>().material.color = color;
-            }
-        }
-
         private readonly List<Node> nodes = new List<Node>();
         private readonly List<Edge> edges = new List<Edge>();
+        public event Action<Edge> OnNewEdge;
+        public event Action<Node> OnNewNode;
 
         public IReadOnlyList<Node> Nodes => nodes;
         public IReadOnlyList<Edge> Edges => edges;
@@ -141,11 +41,7 @@ namespace Mapping
 
         private void Start()
         {
-            lastSample = new Sample(
-                sensors.frontRight.DistanceNormalized, sensors.frontLeft.DistanceNormalized,
-                sensors.up.DistanceNormalized, sensors.down.DistanceNormalized,
-                sensors.backRight.DistanceNormalized, sensors.backLeft.DistanceNormalized,
-                sensors.DronePosition, sensors.gyro.Orientation, Time.time);
+            lastSample = new Sample(sensors, Time.time);
         }
 
 
@@ -156,15 +52,11 @@ namespace Mapping
             nextUpdate -= Time.fixedDeltaTime;
             if (nextUpdate > 0) return;
             nextUpdate = interval;
-            var sample = new Sample(
-                sensors.frontRight.DistanceNormalized, sensors.frontLeft.DistanceNormalized,
-                sensors.up.DistanceNormalized, sensors.down.DistanceNormalized,
-                sensors.backRight.DistanceNormalized, sensors.backLeft.DistanceNormalized,
-                sensors.DronePosition, sensors.gyro.Orientation, Time.time);
+            var sample = new Sample(sensors, Time.time);
 
             currentEdge?.AddSample(sample);
 
-            if (IsIncon(sample.Left, lastSample.Left) || IsIncon(sample.Right, lastSample.Right))
+            if (IsIncon(sample.FrontLeft, lastSample.FrontLeft) || IsIncon(sample.FrontRight, lastSample.FrontRight))
             {
                 bool merged = false;
                 for (int i = nodes.Count - 1; i >= Mathf.Max(nodes.Count - maxBackMerge, 0); i--)
@@ -204,6 +96,7 @@ namespace Mapping
                     nodes.Add(node);
                     lastNode = node;
                 }
+                OnNewNode?.Invoke(lastNode);
             }
 
             lastSample = sample;
@@ -214,40 +107,6 @@ namespace Mapping
             return Mathf.Abs(current - last) > threshold && (current < maxDistance || last < maxDistance);
         }
 
-        private float SimilarEdge(Edge a, Edge b)
-        {
-            DTWDistance<Vector3> distance = Vector3.Distance;
-
-            return MyDTW.DTW(a.NormalizedPositions(), b.NormalizedPositions(), distance).Item1;
-        }
-
-        private bool SamplesSimilar(Sample left, Sample right)
-        {
-            if (Mathf.Abs(left.Time - right.Time) <= mergeTime)
-            {
-                // Samples are close in time. There probably isn't a lot of error in the OF
-                if (Vector3.Distance(left.Position, right.Position) <= mergeDistance)
-                {
-                    return true;
-                }
-            }
-
-
-            return false;
-        }
-
-        private Color[] colors = new[]
-        {
-            Color.blue,
-            Color.red,
-            Color.green,
-            Color.yellow,
-            Color.cyan,
-            Color.magenta
-        };
-
-        private int currentColor = 0;
-
         private void CreateEdge(Node from, Node to, List<Sample> samples)
         {
             var edge = new Edge(from, to, Instantiate(edgePrefab, transform));
@@ -256,32 +115,8 @@ namespace Mapping
                 edge.AddSample(sample);
             }
 
-            if (edges.Count >= 2)
-            {
-                Edge similarEdge = null;
-                var dist = float.MaxValue;
-                var index = -1;
-                for (int i = 0; i < edges.Count - 1; i++)
-                {
-                    var currentDist = SimilarEdge(edges[i], currentEdge);
-                    if (currentDist < dist)
-                    {
-                        similarEdge = edges[i];
-                        dist = currentDist;
-                        index = i;
-                    }
-                }
-
-                if (index >= 0)
-                {
-                    currentEdge.SetColor(colors[currentColor]);
-                    similarEdge.SetColor(colors[currentColor]);
-                    currentColor = (currentColor + 1) % colors.Length;
-                    Debug.Log($"Similar edge: {index}, {dist}, {similarEdge}");
-                }
-            }
-
             edge.UpdatePosition();
+            OnNewEdge?.Invoke(currentEdge);
             edges.Add(edge);
             currentEdge = edge;
         }
