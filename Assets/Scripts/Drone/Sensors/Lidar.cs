@@ -12,7 +12,7 @@ namespace Drone.Sensors
 		[SerializeField] private GameObject debugLidarTarget;
 
 		public float Distance => noise.Distance;
-		public float DistanceNormalized => float.IsInfinity(noise.Distance) ? MaxDistance : noise.Distance;
+		public float DistanceNormalized => (float.IsInfinity(noise.Distance) || float.IsNaN(noise.Distance)) ? MaxDistance : noise.Distance;
 		
 		public float MaxDistance => maxDistance;
 		public float MinDistance => minDistance;
