@@ -45,5 +45,15 @@ namespace Drone
             dronePosition += globalPosDif;
             dronePosition.y = barometer.Value;
         }
+
+        public Vector3 PositionForLidar(Lidar lidar)
+        {
+            var lidarRotation = lidar.transform.localRotation;
+            var lidarPosition = DronePosition +
+                                (DroneRotation *
+                                 (lidarRotation * Vector3.forward * lidar.Distance +
+                                  lidar.transform.localPosition));
+            return lidarPosition;
+        }
     }
 }

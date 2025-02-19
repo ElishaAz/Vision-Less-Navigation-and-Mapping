@@ -4,6 +4,7 @@ using System.Linq;
 using Drone;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Mapping
 {
@@ -21,6 +22,9 @@ namespace Mapping
         [SerializeField] private float mergeTime = 10f;
         [SerializeField] private float interval = 0.1f;
 
+        [SerializeField] private RawImage currentEdgeImage;
+        private Texture2D currentEdgeTexture;
+
         private readonly List<Node> nodes = new List<Node>();
         private readonly List<Edge> edges = new List<Edge>();
         public event Action<Edge> OnNewEdge;
@@ -31,6 +35,7 @@ namespace Mapping
 
         private Node lastNode = null;
         private Edge currentEdge = null;
+        private CloudPoint currentEdgeCloudPoint = new CloudPoint();
 
         private Sample lastSample;
 
@@ -42,6 +47,8 @@ namespace Mapping
         private void Start()
         {
             lastSample = new Sample(sensors, Time.time);
+            currentEdgeTexture = new Texture2D(100, 100, TextureFormat.RGBA32, false);
+            currentEdgeImage.texture = currentEdgeTexture;
         }
 
 
@@ -55,6 +62,12 @@ namespace Mapping
             var sample = new Sample(sensors, Time.time);
 
             currentEdge?.AddSample(sample);
+
+            if (currentEdge != null)
+            {
+                currentEdgeCloudPoint.Add(sample, -currentEdge.From.Position);
+                currentEdgeCloudPoint.ToTexture(currentEdgeTexture);
+            }
 
             if (IsIncon(sample.FrontLeft, lastSample.FrontLeft) || IsIncon(sample.FrontRight, lastSample.FrontRight))
             {
@@ -96,6 +109,7 @@ namespace Mapping
                     nodes.Add(node);
                     lastNode = node;
                 }
+
                 OnNewNode?.Invoke(lastNode);
             }
 
@@ -115,6 +129,7 @@ namespace Mapping
                 edge.AddSample(sample);
             }
 
+            currentEdgeCloudPoint.Clear();
             edge.UpdatePosition();
             OnNewEdge?.Invoke(currentEdge);
             edges.Add(edge);

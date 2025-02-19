@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,84 +12,41 @@ namespace Mapping
         [SerializeField] private RawImage edge1Image;
         [SerializeField] private RawImage edge2Image;
 
-        private static List<Vector3> EdgeToCloudPoint(Edge edge)
+        private static float AngleDifference(float angle1, float angle2)
         {
-            List<Vector3> cloud = new List<Vector3>();
+            float a = angle2 - angle1;
+            if (a > 180)
+                a -= 360;
+            if (a < -180)
+                a += 360;
+            return a;
+        }
+
+        private static CloudPoint EdgeToCloudPoint(Edge edge)
+        {
+            CloudPoint cloud = new CloudPoint();
 
             foreach (var sample in edge.Samples)
             {
-                if (sample.FrontRight < 5)
-                    cloud.Add(sample.FrontRightPosition);
-                if (sample.FrontLeft < 5)
-                    cloud.Add(sample.FrontLeftPosition);
-                if (sample.BackRight < 5)
-                    cloud.Add(sample.BackRightPosition);
-                if (sample.BackLeft < 5)
-                    cloud.Add(sample.BackLeftPosition);
+                cloud.Add(sample);
             }
 
-            Vector3 firstAverage = cloud.Aggregate(Vector3.zero, (current, next) => current + next) / cloud.Count;
-            Quaternion firstRotation =
-                Quaternion.AngleAxis(-edge.Samples.Select((s) => s.Compass).Average(), Vector3.up);
-            cloud = cloud.Select((v) => firstRotation * (v - firstAverage)).ToList();
+            Vector3 average = cloud.Aggregate(Vector3.zero, (current, next) => current + next) / cloud.Count;
+            float angle = edge.Samples.Select((s) => AngleDifference(s.Compass, s.Gyro.y)).Average();
+            Quaternion rotation =
+                Quaternion.AngleAxis(-angle, Vector3.up);
+            cloud = new CloudPoint(cloud.Select((v) => rotation * (v - average)));
             return cloud;
         }
 
-        private static Texture2D CloudPointToTexture(List<Vector3> cloudPoint, int width, int height)
+        private float SimilarCloudPoint(CloudPoint a, CloudPoint b)
         {
-            var tex = new Texture2D(width, height, TextureFormat.ARGB32, false);
-            var maxWidth = Mathf.Max(cloudPoint.Max(v => v.x), -cloudPoint.Min(v => v.x));
-            var maxHeight = Mathf.Max(cloudPoint.Max(v => v.z), -cloudPoint.Min(v => v.z));
-
-            var scale = Mathf.Max(width / maxWidth, height / maxHeight);
-
-            var color = new Color(0xff, 0xff, 0xff, 0xff);
-
-            Color32[] colors = tex.GetPixels32();
-
-            for (int i = 0; i < colors.Length; i++)
-            {
-                colors[i] = new Color32(0x00, 0x00, 0x00, 0xff);
-            }
-
-            tex.SetPixels32(colors);
-            tex.Apply();
-
-            foreach (var point in cloudPoint)
-            {
-                // var projected = Vector3.ProjectOnPlane(point, Vector3.up);
-
-                // colors[width / 2 + (int)(projected.x * scale) + width * (height / 2 + (int)(projected.z * scale))] =
-                // new Color32(0x00, 0xff, 0x00, 0xff);
-
-                tex.SetPixel(width / 2 + (int)(point.x * scale), height / 2 + (int)(point.z * scale), color);
-            }
-
-            Debug.Log($"Width: {maxWidth} Height: {maxHeight}");
-
-            Debug.Log(cloudPoint.Select(v => v.ToString()).Aggregate((a, b) => $"{a}, {b}"));
-
-            tex.Apply();
-
-            return tex;
-        }
-
-        private float SimilarEdge(Edge a, Edge b)
-        {
-            // DTWDistance<Vector3> distance = Vector3.Distance;
-
-            // return MyDTW.DTW(a.NormalizedPositions(), b.NormalizedPositions(), distance).Item1;
-
-            if (a.Samples.Count() < b.Samples.Count() / 2 || a.Samples.Count() / 2 > b.Samples.Count())
+            if (a.Count() < b.Count() / 2 || a.Count() / 2 > b.Count())
             {
                 return 0;
             }
 
-
-            List<Vector3> first = EdgeToCloudPoint(a);
-            List<Vector3> second = EdgeToCloudPoint(b);
-
-            return CloudPoint.ClosePoints(first, second, 0.1f);
+            return a.ClosePoints(b, 0.1f);
         }
 
 
@@ -137,16 +95,21 @@ namespace Mapping
                 return;
             }
 
-            edge1Image.texture = CloudPointToTexture(EdgeToCloudPoint(edge), 100, 100);
+            CloudPoint cloudPoint = EdgeToCloudPoint(edge);
+
+            edge1Image.texture = cloudPoint.ToTexture(100, 100);
             Edge similarEdge = null;
+            CloudPoint similarCloudPoint = null;
             var ratio = 0f;
             var index = -1;
             for (int i = 0; i < Inconsistencies.Instance.Edges.Count - 1; i++)
             {
-                var currentRatio = SimilarEdge(Inconsistencies.Instance.Edges[i], edge);
+                CloudPoint otherCloudPoint = EdgeToCloudPoint(Inconsistencies.Instance.Edges[i]);
+                var currentRatio = SimilarCloudPoint(otherCloudPoint, cloudPoint);
                 if (currentRatio > ratio)
                 {
                     similarEdge = Inconsistencies.Instance.Edges[i];
+                    similarCloudPoint = otherCloudPoint;
                     ratio = currentRatio;
                     index = i;
                 }
@@ -156,7 +119,8 @@ namespace Mapping
 
             if (index >= 0 && ratio > 0.5f)
             {
-                edge2Image.texture = CloudPointToTexture(EdgeToCloudPoint(similarEdge), 100, 100);
+                edge2Image.gameObject.SetActive(true);
+                edge2Image.texture = similarCloudPoint.ToTexture(100, 100);
 
                 bool found = false;
                 foreach (var sim in similarEdges)
@@ -189,6 +153,10 @@ namespace Mapping
                 }
 
                 Debug.Log($"Similar edge: {index}, {ratio}, {similarEdge}");
+            }
+            else
+            {
+                edge2Image.gameObject.SetActive(false);
             }
         }
 

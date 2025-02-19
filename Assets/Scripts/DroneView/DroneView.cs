@@ -54,15 +54,11 @@ namespace DroneView
                         continue;
                     }
 
-                    var lidarRotation = lidar.transform.localRotation;
-                    var spawnPosition = dronePosition +
-                                        (droneRotation *
-                                         (lidarRotation * Vector3.forward * lidar.Distance +
-                                          lidar.transform.localPosition));
+                    var spawnPosition = sensors.PositionForLidar(lidar) + offset;
 
                     if (lidarPrefs[i] != null)
                     {
-                        var lidarPos = Instantiate(lidarPrefs[i], spawnPosition, lidarRotation * droneRotation);
+                        var lidarPos = Instantiate(lidarPrefs[i], spawnPosition, Quaternion.identity);
                         lidarPos.transform.SetParent(holder);
                     }
 

@@ -25,14 +25,13 @@ namespace Mapping
         public readonly float Compass;
         public readonly float Time;
 
-        private static Vector3 GetLidarPosition(Lidar lidar, Vector3 dronePosition, Quaternion droneRotation)
+        private static Vector3 GetLidarPosition(Lidar lidar, DroneSensors droneSensors)
         {
-            var lidarRotation = lidar.transform.localRotation;
-            var lidarPosition = dronePosition +
-                                (droneRotation *
-                                 (lidarRotation * Vector3.forward * lidar.DistanceNormalized +
-                                  lidar.transform.localPosition));
-            return lidarPosition;
+            if (float.IsNaN(lidar.Distance) || float.IsInfinity(lidar.Distance))
+            {
+                return Vector3.zero;
+            }
+            return droneSensors.PositionForLidar(lidar);
         }
 
         public Sample(DroneSensors sensors, float time)
@@ -44,17 +43,17 @@ namespace Mapping
             Compass = sensors.compass.Value;
 
             FrontRight = sensors.frontRight.DistanceNormalized;
-            FrontRightPosition = GetLidarPosition(sensors.frontRight, Position, sensors.DroneRotation);
+            FrontRightPosition = GetLidarPosition(sensors.frontRight, sensors);
             FrontLeft = sensors.frontLeft.DistanceNormalized;
-            FrontLeftPosition = GetLidarPosition(sensors.frontLeft, Position, sensors.DroneRotation);
+            FrontLeftPosition = GetLidarPosition(sensors.frontLeft, sensors);
             Up = sensors.up.DistanceNormalized;
-            UpPosition = GetLidarPosition(sensors.up, Position, sensors.DroneRotation);
+            UpPosition = GetLidarPosition(sensors.up, sensors);
             Down = sensors.down.DistanceNormalized;
-            DownPosition = GetLidarPosition(sensors.down, Position, sensors.DroneRotation);
+            DownPosition = GetLidarPosition(sensors.down, sensors);
             BackRight = sensors.backRight.DistanceNormalized;
-            BackRightPosition = GetLidarPosition(sensors.backRight, Position, sensors.DroneRotation);
+            BackRightPosition = GetLidarPosition(sensors.backRight, sensors);
             BackLeft = sensors.backLeft.DistanceNormalized;
-            BackLeftPosition = GetLidarPosition(sensors.backLeft, Position, sensors.DroneRotation);
+            BackLeftPosition = GetLidarPosition(sensors.backLeft, sensors);
         }
     }
 }
