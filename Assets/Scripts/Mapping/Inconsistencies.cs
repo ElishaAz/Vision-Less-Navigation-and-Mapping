@@ -34,8 +34,8 @@ namespace Mapping
         public IReadOnlyList<Edge> Edges => edges;
 
         private Node lastNode = null;
-        private Edge currentEdge = null;
-        private CloudPoint currentEdgeCloudPoint = new CloudPoint();
+        private readonly List<Sample> currentEdgeSamples = new List<Sample>();
+        private readonly CloudPoint currentEdgeCloudPoint = new CloudPoint();
 
         private Sample lastSample;
 
@@ -61,11 +61,11 @@ namespace Mapping
             nextUpdate = interval;
             var sample = new Sample(sensors, Time.time);
 
-            currentEdge?.AddSample(sample);
+            currentEdgeSamples.Add(sample);
 
-            if (currentEdge != null)
+            if (lastNode != null)
             {
-                currentEdgeCloudPoint.Add(sample, -currentEdge.From.Position);
+                currentEdgeCloudPoint.Add(sample, -lastNode.Position);
                 currentEdgeCloudPoint.ToTexture(currentEdgeTexture);
             }
 
@@ -87,7 +87,7 @@ namespace Mapping
 
                     if (lastNode != lastIncon)
                     {
-                        CreateEdge(lastNode, lastIncon, new List<Sample> { lastSample, sample });
+                        CreateEdge(lastNode, lastIncon);
                     }
 
                     lastNode = lastIncon;
@@ -103,7 +103,7 @@ namespace Mapping
 
                     if (lastNode != null)
                     {
-                        CreateEdge(lastNode, node, new List<Sample> { lastSample, sample });
+                        CreateEdge(lastNode, node);
                     }
 
                     nodes.Add(node);
@@ -121,19 +121,19 @@ namespace Mapping
             return Mathf.Abs(current - last) > threshold && (current < maxDistance || last < maxDistance);
         }
 
-        private void CreateEdge(Node from, Node to, List<Sample> samples)
+        private void CreateEdge(Node from, Node to)
         {
             var edge = new Edge(from, to, Instantiate(edgePrefab, transform));
-            foreach (var sample in samples)
+            foreach (var sample in currentEdgeSamples)
             {
                 edge.AddSample(sample);
             }
-
+            currentEdgeSamples.Clear();
             currentEdgeCloudPoint.Clear();
+
             edge.UpdatePosition();
-            OnNewEdge?.Invoke(currentEdge);
+            OnNewEdge?.Invoke(edge);
             edges.Add(edge);
-            currentEdge = edge;
         }
     }
 }

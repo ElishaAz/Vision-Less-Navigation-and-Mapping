@@ -102,7 +102,7 @@ namespace Mapping
             CloudPoint similarCloudPoint = null;
             var ratio = 0f;
             var index = -1;
-            for (int i = 0; i < Inconsistencies.Instance.Edges.Count - 1; i++)
+            for (int i = 0; i < Inconsistencies.Instance.Edges.Count; i++)
             {
                 CloudPoint otherCloudPoint = EdgeToCloudPoint(Inconsistencies.Instance.Edges[i]);
                 var currentRatio = SimilarCloudPoint(otherCloudPoint, cloudPoint);
