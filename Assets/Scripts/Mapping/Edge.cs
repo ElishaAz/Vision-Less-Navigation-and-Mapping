@@ -6,23 +6,25 @@ namespace Mapping
 {
     public class Edge
     {
-        public Node From;
-        public Node To;
+        public readonly Node From;
+        public readonly Node To;
         private readonly List<Sample> samples = new List<Sample>();
         public IReadOnlyList<Sample> Samples => samples;
 
         private GameObject prefab;
 
-        public Edge(Node from, Node to, GameObject prefab)
+        public readonly PointCloud PointCloud;
+
+        public Edge(Node from, Node to, GameObject prefab, IReadOnlyList<Sample> samples)
         {
             From = from;
             To = to;
             this.prefab = prefab;
-        }
+            this.samples.AddRange(samples);
 
-        public void AddSample(Sample sample)
-        {
-            samples.Add(sample);
+            PointCloud = PointCloud.FromSamples(samples);
+
+            UpdatePosition();
         }
 
         public void UpdatePosition()

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Drone;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Mapping
@@ -35,7 +34,7 @@ namespace Mapping
 
         private Node lastNode = null;
         private readonly List<Sample> currentEdgeSamples = new List<Sample>();
-        private readonly CloudPoint currentEdgeCloudPoint = new CloudPoint();
+        private readonly PointCloud currentEdgePointCloud = new PointCloud();
 
         private Sample lastSample;
 
@@ -65,8 +64,8 @@ namespace Mapping
 
             if (lastNode != null)
             {
-                currentEdgeCloudPoint.Add(sample, -lastNode.Position);
-                currentEdgeCloudPoint.ToTexture(currentEdgeTexture);
+                currentEdgePointCloud.Add(sample, -lastNode.Position);
+                currentEdgePointCloud.ToTexture(currentEdgeTexture);
             }
 
             if (IsIncon(sample.FrontLeft, lastSample.FrontLeft) || IsIncon(sample.FrontRight, lastSample.FrontRight))
@@ -123,15 +122,11 @@ namespace Mapping
 
         private void CreateEdge(Node from, Node to)
         {
-            var edge = new Edge(from, to, Instantiate(edgePrefab, transform));
-            foreach (var sample in currentEdgeSamples)
-            {
-                edge.AddSample(sample);
-            }
-            currentEdgeSamples.Clear();
-            currentEdgeCloudPoint.Clear();
+            var edge = new Edge(from, to, Instantiate(edgePrefab, transform), currentEdgeSamples);
 
-            edge.UpdatePosition();
+            currentEdgeSamples.Clear();
+            currentEdgePointCloud.Clear();
+
             OnNewEdge?.Invoke(edge);
             edges.Add(edge);
         }

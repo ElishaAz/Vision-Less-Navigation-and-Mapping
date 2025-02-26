@@ -12,36 +12,9 @@ namespace Mapping
         [SerializeField] private RawImage edge1Image;
         [SerializeField] private RawImage edge2Image;
 
-        private static float AngleDifference(float angle1, float angle2)
+        private float SimilarPointCloud(PointCloud a, PointCloud b)
         {
-            float a = angle2 - angle1;
-            if (a > 180)
-                a -= 360;
-            if (a < -180)
-                a += 360;
-            return a;
-        }
-
-        private static CloudPoint EdgeToCloudPoint(Edge edge)
-        {
-            CloudPoint cloud = new CloudPoint();
-
-            foreach (var sample in edge.Samples)
-            {
-                cloud.Add(sample);
-            }
-
-            Vector3 average = cloud.Aggregate(Vector3.zero, (current, next) => current + next) / cloud.Count;
-            float angle = edge.Samples.Select((s) => AngleDifference(s.Compass, s.Gyro.y)).Average();
-            Quaternion rotation =
-                Quaternion.AngleAxis(-angle, Vector3.up);
-            cloud = new CloudPoint(cloud.Select((v) => rotation * (v - average)));
-            return cloud;
-        }
-
-        private float SimilarCloudPoint(CloudPoint a, CloudPoint b)
-        {
-            if (a.Count() < b.Count() / 2 || a.Count() / 2 > b.Count())
+            if (a.Count < b.Count / 2 || a.Count / 2 > b.Count)
             {
                 return 0;
             }
@@ -62,7 +35,7 @@ namespace Mapping
             Inconsistencies.Instance.OnNewNode -= OnNewNode;
         }
 
-        private Color[] colors = new[]
+        private readonly Color[] colors = new Color[]
         {
             Color.blue,
             Color.red,
@@ -70,18 +43,18 @@ namespace Mapping
             Color.yellow,
             Color.cyan,
             Color.magenta,
-            new Color(0x8a, 0x2b, 0xe2),
-            new Color(0xff, 0x7f, 0x50),
-            new Color(0x64, 0x95, 0xed),
-            new Color(0x8f, 0xbc, 0x8f),
-            new Color(0x00, 0xbf, 0xff),
-            new Color(0xff, 0xd7, 0x00),
-            new Color(0xf0, 0x80, 0x80),
-            new Color(0xff, 0xa5, 0x00),
-            new Color(0x98, 0xfb, 0x98),
-            new Color(0x66, 0x33, 0x99),
-            new Color(0x87, 0xce, 0xeb),
-            new Color(0x46, 0x82, 0xb4),
+            new Color32(0x8a, 0x2b, 0xe2, 0xff),
+            new Color32(0xff, 0x7f, 0x50, 0xff),
+            new Color32(0x64, 0x95, 0xed, 0xff),
+            new Color32(0x8f, 0xbc, 0x8f, 0xff),
+            new Color32(0x00, 0xbf, 0xff, 0xff),
+            new Color32(0xff, 0xd7, 0x00, 0xff),
+            new Color32(0xf0, 0x80, 0x80, 0xff),
+            new Color32(0xff, 0xa5, 0x00, 0xff),
+            new Color32(0x98, 0xfb, 0x98, 0xff),
+            new Color32(0x66, 0x33, 0x99, 0xff),
+            new Color32(0x87, 0xce, 0xeb, 0xff),
+            new Color32(0x46, 0x82, 0xb4, 0xff),
         };
 
         private int currentColor = 0;
@@ -95,21 +68,21 @@ namespace Mapping
                 return;
             }
 
-            CloudPoint cloudPoint = EdgeToCloudPoint(edge);
+            PointCloud pointCloud = PointCloud.FromSamples(edge.Samples);
 
-            edge1Image.texture = cloudPoint.ToTexture(100, 100);
+            edge1Image.texture = pointCloud.ToTexture(100, 100);
             Edge similarEdge = null;
-            CloudPoint similarCloudPoint = null;
+            PointCloud similarPointCloud = null;
             var ratio = 0f;
             var index = -1;
             for (int i = 0; i < Inconsistencies.Instance.Edges.Count; i++)
             {
-                CloudPoint otherCloudPoint = EdgeToCloudPoint(Inconsistencies.Instance.Edges[i]);
-                var currentRatio = SimilarCloudPoint(otherCloudPoint, cloudPoint);
+                PointCloud otherPointCloud = Inconsistencies.Instance.Edges[i].PointCloud;
+                var currentRatio = SimilarPointCloud(otherPointCloud, pointCloud);
                 if (currentRatio > ratio)
                 {
                     similarEdge = Inconsistencies.Instance.Edges[i];
-                    similarCloudPoint = otherCloudPoint;
+                    similarPointCloud = otherPointCloud;
                     ratio = currentRatio;
                     index = i;
                 }
@@ -120,7 +93,7 @@ namespace Mapping
             if (index >= 0 && ratio > 0.5f)
             {
                 edge2Image.gameObject.SetActive(true);
-                edge2Image.texture = similarCloudPoint.ToTexture(100, 100);
+                edge2Image.texture = similarPointCloud.ToTexture(100, 100);
 
                 bool found = false;
                 foreach (var sim in similarEdges)

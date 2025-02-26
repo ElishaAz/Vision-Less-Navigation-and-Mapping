@@ -4,23 +4,62 @@ using UnityEngine;
 
 namespace Mapping
 {
-    public class CloudPoint : List<Vector3>
+    public class PointCloud
     {
-        public CloudPoint()
+        private List<Vector3> points;
+
+        public int Count => points.Count;
+
+        public PointCloud()
         {
+            points = new List<Vector3>();
         }
 
-        public CloudPoint(IEnumerable<Vector3> collection) : base(collection)
+        public PointCloud(IEnumerable<Vector3> collection)
         {
+            points = new List<Vector3>(collection);
         }
 
-        public CloudPoint(int capacity) : base(capacity)
+        public PointCloud(int capacity)
         {
+            points = new List<Vector3>(capacity);
         }
 
-        private void AddPoint(Vector3 point)
+        public static PointCloud FromSamples(IReadOnlyList<Sample> samples)
         {
-            base.Add(point);
+            PointCloud cloud = new PointCloud();
+
+            foreach (var sample in samples)
+            {
+                cloud.Add(sample);
+            }
+
+            Vector3 average = cloud.points.Aggregate(Vector3.zero, (current, next) => current + next) / cloud.Count;
+            float angle = samples.Select((s) => AngleDifference(s.Compass, s.Gyro.y)).Average();
+            Quaternion rotation =
+                Quaternion.AngleAxis(-angle, Vector3.up);
+
+            for (int i = 0; i < cloud.Count; i++)
+            {
+                cloud.points[i] = rotation * (cloud.points[i] - average);
+            }
+
+            return cloud;
+        }
+
+        private static float AngleDifference(float angle1, float angle2)
+        {
+            float a = angle2 - angle1;
+            if (a > 180)
+                a -= 360;
+            if (a < -180)
+                a += 360;
+            return a;
+        }
+
+        public void AddPoint(Vector3 point)
+        {
+            points.Add(point);
         }
 
         public void Add(Sample sample, Vector3 offset = default)
@@ -38,7 +77,7 @@ namespace Mapping
         private float MinDistance(Vector3 point)
         {
             float minDistance = float.MaxValue;
-            foreach (var p in this)
+            foreach (var p in points)
             {
                 var d = Vector3.Distance(point, p);
                 if (d < minDistance)
@@ -49,13 +88,13 @@ namespace Mapping
         }
 
 
-        public float ClosePoints(CloudPoint second, float maxDistance)
+        public float ClosePoints(PointCloud second, float maxDistance)
         {
             float count = 0;
 
-            foreach (var p in second)
+            foreach (var p in second.points)
             {
-                if (this.MinDistance(p) < maxDistance)
+                if (MinDistance(p) < maxDistance)
                 {
                     count++;
                 }
@@ -74,8 +113,8 @@ namespace Mapping
 
         public void ToTexture(Texture2D tex)
         {
-            var maxWidth = Mathf.Max(this.Max(v => v.x), -this.Min(v => v.x));
-            var maxHeight = Mathf.Max(this.Max(v => v.z), -this.Min(v => v.z));
+            var maxWidth = Mathf.Max(points.Max(v => v.x), -points.Min(v => v.x));
+            var maxHeight = Mathf.Max(points.Max(v => v.z), -points.Min(v => v.z));
 
             var scale = Mathf.Min(tex.width / maxWidth, tex.height / maxHeight) / 2;
 
@@ -91,17 +130,17 @@ namespace Mapping
             tex.SetPixels32(colors);
             tex.Apply();
 
-            foreach (var point in this)
+            foreach (var point in points)
             {
-                // var projected = Vector3.ProjectOnPlane(point, Vector3.up);
-
-                // colors[width / 2 + (int)(projected.x * scale) + width * (height / 2 + (int)(projected.z * scale))] =
-                // new Color32(0x00, 0xff, 0x00, 0xff);
-
                 tex.SetPixel(tex.width / 2 + (int)(point.x * scale), tex.height / 2 + (int)(point.z * scale), color);
             }
 
             tex.Apply();
+        }
+
+        public void Clear()
+        {
+            points.Clear();
         }
     }
 }
