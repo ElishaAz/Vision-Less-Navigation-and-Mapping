@@ -25,14 +25,14 @@ namespace Mapping
 
         private void Start()
         {
-            Inconsistencies.Instance.OnNewEdge += OnNewEdge;
-            Inconsistencies.Instance.OnNewNode += OnNewNode;
+            Mapper.Instance.OnNewEdge += OnNewEdge;
+            Mapper.Instance.OnNewNode += OnNewNode;
         }
 
         private void OnDestroy()
         {
-            Inconsistencies.Instance.OnNewEdge -= OnNewEdge;
-            Inconsistencies.Instance.OnNewNode -= OnNewNode;
+            Mapper.Instance.OnNewEdge -= OnNewEdge;
+            Mapper.Instance.OnNewNode -= OnNewNode;
         }
 
         private readonly Color[] colors = new Color[]
@@ -75,13 +75,13 @@ namespace Mapping
             PointCloud similarPointCloud = null;
             var ratio = 0f;
             var index = -1;
-            for (int i = 0; i < Inconsistencies.Instance.Edges.Count; i++)
+            for (int i = 0; i < Mapper.Instance.Map.Edges.Count; i++)
             {
-                PointCloud otherPointCloud = Inconsistencies.Instance.Edges[i].PointCloud;
+                PointCloud otherPointCloud = Mapper.Instance.Map.Edges[i].PointCloud;
                 var currentRatio = SimilarPointCloud(otherPointCloud, pointCloud);
                 if (currentRatio > ratio)
                 {
-                    similarEdge = Inconsistencies.Instance.Edges[i];
+                    similarEdge = Mapper.Instance.Map.Edges[i];
                     similarPointCloud = otherPointCloud;
                     ratio = currentRatio;
                     index = i;
@@ -110,15 +110,15 @@ namespace Mapping
                     if (found)
                     {
                         sim.Item2.Add(edge);
-                        edge.SetColor(sim.Item1);
+                        EdgePosition.Of(edge)?.SetColor(sim.Item1);
                         break;
                     }
                 }
 
                 if (!found)
                 {
-                    edge.SetColor(colors[currentColor]);
-                    similarEdge.SetColor(colors[currentColor]);
+                    EdgePosition.Of(edge)?.SetColor(colors[currentColor]);
+                    EdgePosition.Of(similarEdge)?.SetColor(colors[currentColor]);
                     currentColor = (currentColor + 1) % colors.Length;
 
                     similarEdges.Add((colors[currentColor],

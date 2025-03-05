@@ -7,9 +7,9 @@ using UnityEngine.UI;
 
 namespace Mapping
 {
-    public class Inconsistencies : MonoBehaviour
+    public class Mapper : MonoBehaviour
     {
-        public static Inconsistencies Instance;
+        public static Mapper Instance;
 
         [SerializeField] private DroneSensors sensors;
         [SerializeField] private float threshold = 1f;
@@ -24,13 +24,10 @@ namespace Mapping
         [SerializeField] private RawImage currentEdgeImage;
         private Texture2D currentEdgeTexture;
 
-        private readonly List<Node> nodes = new List<Node>();
-        private readonly List<Edge> edges = new List<Edge>();
         public event Action<Edge> OnNewEdge;
         public event Action<Node> OnNewNode;
 
-        public IReadOnlyList<Node> Nodes => nodes;
-        public IReadOnlyList<Edge> Edges => edges;
+        public readonly Map Map = new Map();
 
         private Node lastNode = null;
         private readonly List<Sample> currentEdgeSamples = new List<Sample>();
@@ -49,7 +46,6 @@ namespace Mapping
             currentEdgeTexture = new Texture2D(100, 100, TextureFormat.RGBA32, false);
             currentEdgeImage.texture = currentEdgeTexture;
         }
-
 
         private float nextUpdate;
 
@@ -71,17 +67,17 @@ namespace Mapping
             if (IsIncon(sample.FrontLeft, lastSample.FrontLeft) || IsIncon(sample.FrontRight, lastSample.FrontRight))
             {
                 bool merged = false;
-                for (int i = nodes.Count - 1; i >= Mathf.Max(nodes.Count - maxBackMerge, 0); i--)
+                for (int i = Map.Nodes.Count - 1; i >= Mathf.Max(Map.Nodes.Count - maxBackMerge, 0); i--)
                 {
-                    var lastIncon = nodes[i];
+                    var lastIncon = Map.Nodes[i];
                     if (Vector3.Distance(lastIncon.Position, sample.Position) > mergeDistance
                         || sample.Time - lastIncon.Samples.Last().Item2.Time > mergeTime) continue;
 
                     lastIncon.AddSample(lastSample, sample);
 
-                    foreach (var edge in edges.Where(edge => edge.From == lastIncon || edge.To == lastIncon))
+                    foreach (var edge in Map.Edges.Where(edge => edge.From == lastIncon || edge.To == lastIncon))
                     {
-                        edge.UpdatePosition();
+                        EdgePosition.Of(edge)?.UpdatePosition();
                     }
 
                     if (lastNode != lastIncon)
@@ -97,15 +93,16 @@ namespace Mapping
 
                 if (!merged)
                 {
-                    var node = new Node(Instantiate(nodePrefab, transform));
+                    var node = new Node();
                     node.AddSample(lastSample, sample);
+                    NodePosition.Create(node, Instantiate(nodePrefab, transform));
 
                     if (lastNode != null)
                     {
                         CreateEdge(lastNode, node);
                     }
 
-                    nodes.Add(node);
+                    Map.AddNode(node);
                     lastNode = node;
                 }
 
@@ -122,13 +119,14 @@ namespace Mapping
 
         private void CreateEdge(Node from, Node to)
         {
-            var edge = new Edge(from, to, Instantiate(edgePrefab, transform), currentEdgeSamples);
+            var edge = new Edge(from, to, currentEdgeSamples);
+            EdgePosition.Create(edge, Instantiate(edgePrefab, transform));
 
             currentEdgeSamples.Clear();
             currentEdgePointCloud.Clear();
 
             OnNewEdge?.Invoke(edge);
-            edges.Add(edge);
+            Map.AddEdge(edge);
         }
     }
 }

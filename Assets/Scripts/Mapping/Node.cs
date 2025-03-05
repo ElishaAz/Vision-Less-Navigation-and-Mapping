@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,20 +20,25 @@ namespace Mapping
             Position = Samples.Aggregate(Vector3.zero,
                            (current, sample) => current + sample.Item2.Position)
                        / Samples.Count;
-
-            prefab.transform.position = Position + DroneView.DroneView.Offset;
         }
 
         /// <summary>
         /// Average of all After positions
         /// </summary>
-        public Vector3 Position { get; private set; }
+        [field: NonSerialized] public Vector3 Position { get; private set; }
 
         private readonly GameObject prefab;
 
-        public Node(GameObject prefab)
+        public Node()
         {
-            this.prefab = prefab;
+        }
+
+        public Node(List<(Sample, Sample)> samples)
+        {
+            this.samples.AddRange(samples);
+            Position = Samples.Aggregate(Vector3.zero,
+                           (current, sample) => current + sample.Item2.Position)
+                       / Samples.Count;
         }
     }
 }
