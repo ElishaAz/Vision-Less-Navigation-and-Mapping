@@ -1,29 +1,47 @@
+using System;
 using Drone;
 using Drone.Sensors;
 using UnityEngine;
 
 namespace Mapping
 {
-    public readonly struct Sample
+    [Serializable]
+    public struct Sample
     {
-        public readonly float FrontRight;
-        public readonly Vector3 FrontRightPosition;
+        [SerializeField] private float frontRight;
+        public float FrontRight => frontRight;
+        [SerializeField] private Vector3 frontRightPosition;
+        public Vector3 FrontRightPosition => frontRightPosition;
 
-        public readonly float FrontLeft;
-        public readonly Vector3 FrontLeftPosition;
-        public readonly float Up;
-        public readonly Vector3 UpPosition;
-        public readonly float Down;
-        public readonly Vector3 DownPosition;
-        public readonly float BackRight;
-        public readonly Vector3 BackRightPosition;
-        public readonly float BackLeft;
-        public readonly Vector3 BackLeftPosition;
+        [SerializeField] private float frontLeft;
+        public readonly float FrontLeft => frontLeft;
+        [SerializeField] private Vector3 frontLeftPosition;
+        public readonly Vector3 FrontLeftPosition => frontLeftPosition;
+        [SerializeField] private float up;
+        public readonly float Up => up;
+        [SerializeField] private Vector3 upPosition;
+        public readonly Vector3 UpPosition => upPosition;
+        [SerializeField] private float down;
+        public readonly float Down => down;
+        [SerializeField] private Vector3 downPosition;
+        public readonly Vector3 DownPosition => downPosition;
+        [SerializeField] private float backRight;
+        public readonly float BackRight => backRight;
+        [SerializeField] private Vector3 backRightPosition;
+        public readonly Vector3 BackRightPosition => backRightPosition;
+        [SerializeField] private float backLeft;
+        public readonly float BackLeft => backLeft;
+        [SerializeField] private Vector3 backLeftPosition;
+        public readonly Vector3 BackLeftPosition => backLeftPosition;
 
-        public readonly Vector3 Position;
-        public readonly Vector3 Gyro;
-        public readonly float Compass;
-        public readonly float Time;
+        [SerializeField] private Vector3 position;
+        public readonly Vector3 Position => position;
+        [SerializeField] private Vector3 gyro;
+        public readonly Vector3 Gyro => gyro;
+        [SerializeField] private float compass;
+        public readonly float Compass => compass;
+        [SerializeField] private float time;
+        public readonly float Time => time;
 
         private static Vector3 GetLidarPosition(Lidar lidar, DroneSensors droneSensors)
         {
@@ -31,29 +49,30 @@ namespace Mapping
             {
                 return Vector3.zero;
             }
+
             return droneSensors.PositionForLidar(lidar);
         }
 
         public Sample(DroneSensors sensors, float time)
         {
-            Time = time;
+            this.time = time;
 
-            Position = sensors.DronePosition;
-            Gyro = sensors.gyro.Orientation;
-            Compass = sensors.compass.Value;
+            position = sensors.DronePosition;
+            gyro = sensors.gyro.Orientation;
+            compass = sensors.compass.Value;
 
-            FrontRight = sensors.frontRight.DistanceNormalized;
-            FrontRightPosition = GetLidarPosition(sensors.frontRight, sensors);
-            FrontLeft = sensors.frontLeft.DistanceNormalized;
-            FrontLeftPosition = GetLidarPosition(sensors.frontLeft, sensors);
-            Up = sensors.up.DistanceNormalized;
-            UpPosition = GetLidarPosition(sensors.up, sensors);
-            Down = sensors.down.DistanceNormalized;
-            DownPosition = GetLidarPosition(sensors.down, sensors);
-            BackRight = sensors.backRight.DistanceNormalized;
-            BackRightPosition = GetLidarPosition(sensors.backRight, sensors);
-            BackLeft = sensors.backLeft.DistanceNormalized;
-            BackLeftPosition = GetLidarPosition(sensors.backLeft, sensors);
+            frontRight = sensors.frontRight.DistanceNormalized;
+            frontRightPosition = GetLidarPosition(sensors.frontRight, sensors);
+            frontLeft = sensors.frontLeft.DistanceNormalized;
+            frontLeftPosition = GetLidarPosition(sensors.frontLeft, sensors);
+            up = sensors.up.DistanceNormalized;
+            upPosition = GetLidarPosition(sensors.up, sensors);
+            down = sensors.down.DistanceNormalized;
+            downPosition = GetLidarPosition(sensors.down, sensors);
+            backRight = sensors.backRight.DistanceNormalized;
+            backRightPosition = GetLidarPosition(sensors.backRight, sensors);
+            backLeft = sensors.backLeft.DistanceNormalized;
+            backLeftPosition = GetLidarPosition(sensors.backLeft, sensors);
         }
     }
 }

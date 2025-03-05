@@ -22,6 +22,8 @@ namespace Mapping
         [SerializeField] private float interval = 0.1f;
 
         [SerializeField] private RawImage currentEdgeImage;
+
+        [SerializeField] private bool save = false;
         private Texture2D currentEdgeTexture;
 
         public event Action<Edge> OnNewEdge;
@@ -45,12 +47,19 @@ namespace Mapping
             lastSample = new Sample(sensors, Time.time);
             currentEdgeTexture = new Texture2D(100, 100, TextureFormat.RGBA32, false);
             currentEdgeImage.texture = currentEdgeTexture;
+            save = false;
         }
 
         private float nextUpdate;
 
         private void FixedUpdate()
         {
+            if (save)
+            {
+                save = false;
+                MapLoader.Save(Map, "map.json");
+            }
+
             nextUpdate -= Time.fixedDeltaTime;
             if (nextUpdate > 0) return;
             nextUpdate = interval;
@@ -71,7 +80,7 @@ namespace Mapping
                 {
                     var lastIncon = Map.Nodes[i];
                     if (Vector3.Distance(lastIncon.Position, sample.Position) > mergeDistance
-                        || sample.Time - lastIncon.Samples.Last().Item2.Time > mergeTime) continue;
+                        || sample.Time - lastIncon.Afters.Last().Time > mergeTime) continue;
 
                     lastIncon.AddSample(lastSample, sample);
 

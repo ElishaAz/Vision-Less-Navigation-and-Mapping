@@ -5,40 +5,78 @@ using UnityEngine;
 
 namespace Mapping
 {
+    [Serializable]
     public class Node
     {
-        private readonly List<(Sample, Sample)> samples = new List<(Sample, Sample)>();
+        [SerializeField] private List<Sample> befores = new List<Sample>();
+        [SerializeField] private List<Sample> afters = new List<Sample>();
 
         /// <summary>
-        /// A list of samples, before and after the inconsistency.
+        /// A list of samples, before the inconsistency.
         /// </summary>
-        public IReadOnlyList<(Sample, Sample)> Samples => samples;
+        public IReadOnlyList<Sample> Befores => befores;
+
+        /// <summary>
+        /// A list of samples, after the inconsistency.
+        /// </summary>
+        public IReadOnlyList<Sample> Afters => afters;
 
         public void AddSample(Sample before, Sample after)
         {
-            samples.Add((before, after));
-            Position = Samples.Aggregate(Vector3.zero,
-                           (current, sample) => current + sample.Item2.Position)
-                       / Samples.Count;
+            befores.Add(before);
+            afters.Add(after);
+            Position = Befores.Aggregate(Vector3.zero,
+                           (current, sample) => current + sample.Position)
+                       / Befores.Count;
         }
 
         /// <summary>
         /// Average of all After positions
         /// </summary>
-        [field: NonSerialized] public Vector3 Position { get; private set; }
-
-        private readonly GameObject prefab;
+        [field: NonSerialized]
+        public Vector3 Position { get; private set; }
 
         public Node()
         {
         }
 
-        public Node(List<(Sample, Sample)> samples)
+        public Node(IReadOnlyList<Sample> befores, IReadOnlyList<Sample> afters)
         {
-            this.samples.AddRange(samples);
-            Position = Samples.Aggregate(Vector3.zero,
-                           (current, sample) => current + sample.Item2.Position)
-                       / Samples.Count;
+            this.befores.AddRange(befores);
+            this.afters.AddRange(afters);
+            Position = Befores.Aggregate(Vector3.zero,
+                           (current, sample) => current + sample.Position)
+                       / Befores.Count;
+        }
+
+        public static bool operator ==(Node a, Node b)
+        {
+            if (ReferenceEquals(a, b)) return true;
+            if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return false;
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(Node a, Node b)
+        {
+            return !(a == b);
+        }
+
+        protected bool Equals(Node other)
+        {
+            return Equals(befores, other.befores) && Equals(afters, other.afters);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((Node)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(befores, afters);
         }
     }
 }
