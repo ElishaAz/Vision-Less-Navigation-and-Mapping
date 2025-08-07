@@ -3,7 +3,7 @@ using Drone;
 using Drone.Sensors;
 using UnityEngine;
 
-namespace Mapping
+namespace Mapping.Data
 {
     [Serializable]
     public struct Sample

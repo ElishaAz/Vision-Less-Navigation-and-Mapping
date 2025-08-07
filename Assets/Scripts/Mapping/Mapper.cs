@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Drone;
+using Mapping.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,7 +27,7 @@ namespace Mapping
         [SerializeField] private bool save = false;
         private Texture2D currentEdgeTexture;
 
-        public event Action<Edge> OnNewEdge;
+        public event Action<Edge, int> OnNewEdge;
         public event Action<Node> OnNewNode;
 
         public readonly Map Map = new Map();
@@ -134,8 +135,10 @@ namespace Mapping
             currentEdgeSamples.Clear();
             currentEdgePointCloud.Clear();
 
-            OnNewEdge?.Invoke(edge);
             Map.AddEdge(edge);
+            var edgeIndex = Map.Edges.Count - 1;
+            Algorithms.EdgeSimilarity.EdgeAdded(Map, edge, edgeIndex);
+            OnNewEdge?.Invoke(edge, edgeIndex);
         }
     }
 }

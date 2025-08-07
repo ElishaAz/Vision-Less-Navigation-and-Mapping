@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Mapping.Data;
 using UnityEngine;
 
 namespace Mapping

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Mapping.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,16 +12,6 @@ namespace Mapping
     {
         [SerializeField] private RawImage edge1Image;
         [SerializeField] private RawImage edge2Image;
-
-        private float SimilarPointCloud(PointCloud a, PointCloud b)
-        {
-            if (a.Count < b.Count / 2 || a.Count / 2 > b.Count)
-            {
-                return 0;
-            }
-
-            return a.ClosePoints(b, 0.1f);
-        }
 
 
         private void Start()
@@ -61,7 +52,7 @@ namespace Mapping
 
         private readonly List<(Color, List<Edge>)> similarEdges = new();
 
-        private void OnNewEdge(Edge edge)
+        private void OnNewEdge(Edge edge, int currentEdgeIndex)
         {
             if (edge == null)
             {
@@ -72,28 +63,27 @@ namespace Mapping
 
             edge1Image.texture = pointCloud.ToTexture(100, 100);
             Edge similarEdge = null;
-            PointCloud similarPointCloud = null;
             var ratio = 0f;
             var index = -1;
-            for (int i = 0; i < Mapper.Instance.Map.Edges.Count; i++)
+            for (int i = 0; i < currentEdgeIndex; i++)
             {
-                PointCloud otherPointCloud = Mapper.Instance.Map.Edges[i].PointCloud;
-                var currentRatio = SimilarPointCloud(otherPointCloud, pointCloud);
+                var currentRatio = Mapper.Instance.Map.GetSimilarity(i, currentEdgeIndex);
                 if (currentRatio > ratio)
                 {
                     similarEdge = Mapper.Instance.Map.Edges[i];
-                    similarPointCloud = otherPointCloud;
                     ratio = currentRatio;
                     index = i;
                 }
             }
 
+            Mapper.Instance.Map.AddSimilarity(currentEdgeIndex, currentEdgeIndex, 1f);
+
             Debug.Log($"New Edge. Ratio: {ratio}");
 
-            if (index >= 0 && ratio > 0.5f)
+            if (index >= 0 && ratio > 0.5f && similarEdge != null)
             {
                 edge2Image.gameObject.SetActive(true);
-                edge2Image.texture = similarPointCloud.ToTexture(100, 100);
+                edge2Image.texture = similarEdge.PointCloud.ToTexture(100, 100);
 
                 bool found = false;
                 foreach (var sim in similarEdges)

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Mapping
+namespace Mapping.Data
 {
     public class PointCloud
     {
@@ -101,6 +101,16 @@ namespace Mapping
             }
 
             return count / second.Count;
+        }
+
+        public static float SimilarPointCloud(PointCloud a, PointCloud b)
+        {
+            if (a.Count < b.Count / 2 || a.Count / 2 > b.Count)
+            {
+                return 0;
+            }
+
+            return a.ClosePoints(b, 0.1f);
         }
 
         public Texture2D ToTexture(int width, int height)

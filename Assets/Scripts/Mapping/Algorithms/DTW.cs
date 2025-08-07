@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 // Based on https://gist.github.com/socrateslee/1966342
 
-namespace Mapping
+namespace Mapping.Algorithms
 {
     public delegate float DTWDistance<in T>(T left, T right);
 

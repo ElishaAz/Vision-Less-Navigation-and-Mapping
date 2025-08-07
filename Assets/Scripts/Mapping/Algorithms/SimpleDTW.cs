@@ -3,7 +3,7 @@
 using System;
 using System.Collections;
 
-namespace Mapping
+namespace Mapping.Algorithms
 {
     class SimpleDTW
     {

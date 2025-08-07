@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Mapping
+namespace Mapping.Algorithms
 {
     public static class FrechetDistance
     {

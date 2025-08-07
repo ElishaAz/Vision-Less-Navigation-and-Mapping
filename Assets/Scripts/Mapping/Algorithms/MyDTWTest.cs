@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using NUnit.Framework;
 
-namespace Mapping
+namespace Mapping.Algorithms
 {
     [TestFixture]
     [TestOf(typeof(MyDTW))]
