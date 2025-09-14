@@ -25,6 +25,9 @@ namespace Mapping.Data
             this.to = to;
             this.samples.AddRange(samples);
 
+            from.SetTo(this);
+            to.SetFrom(this);
+
             PointCloud = PointCloud.FromSamples(samples);
         }
 

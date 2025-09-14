@@ -22,6 +22,21 @@ namespace Mapping.Data
             edges.Add(edge);
         }
 
+        public void AddNode(Node node)
+        {
+            nodes.Add(node);
+        }
+
+        public int IndexOf(Edge edge)
+        {
+            return edges.IndexOf(edge);
+        }
+
+        public int IndexOf(Node node)
+        {
+            return nodes.IndexOf(node);
+        }
+
         public void AddSimilarity(int index1, int index2, float similarity)
         {
             if (index2 < index1)
@@ -48,11 +63,6 @@ namespace Mapping.Data
             var index2 = edges.IndexOf(b);
 
             return GetSimilarity(index1, index2);
-        }
-
-        public void AddNode(Node node)
-        {
-            nodes.Add(node);
         }
 
         public static bool operator ==(Map left, Map right)

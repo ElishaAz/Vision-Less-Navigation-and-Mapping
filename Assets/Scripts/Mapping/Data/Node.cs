@@ -11,6 +11,9 @@ namespace Mapping.Data
         [SerializeField] private List<Sample> befores = new List<Sample>();
         [SerializeField] private List<Sample> afters = new List<Sample>();
 
+        [field: NonSerialized] public Edge From { get; private set; }
+        [field: NonSerialized] public Edge To { get; private set; }
+
         /// <summary>
         /// A list of samples, before the inconsistency.
         /// </summary>
@@ -47,6 +50,16 @@ namespace Mapping.Data
             Position = Befores.Aggregate(Vector3.zero,
                            (current, sample) => current + sample.Position)
                        / Befores.Count;
+        }
+
+        public void SetFrom(Edge from)
+        {
+            From = from;
+        }
+
+        public void SetTo(Edge to)
+        {
+            To = to;
         }
 
         public static bool operator ==(Node a, Node b)
