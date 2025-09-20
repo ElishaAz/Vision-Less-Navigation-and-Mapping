@@ -243,6 +243,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sensors: {fileID: 3085994043904529954}
   drone: {fileID: 317637467296337126}
+  emergencyThresh: 0.2
+  turnRightThresh: 1.2
 --- !u!114 &317637467296337126
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -261,7 +263,7 @@ MonoBehaviour:
   pitchSpeed: 5
   rollPitchRate: 10
   yawRate: 90
-  thrustSpeed: 5
+  thrustSpeed: 20
 --- !u!114 &3085994043904529954
 MonoBehaviour:
   m_ObjectHideFlags: 0
