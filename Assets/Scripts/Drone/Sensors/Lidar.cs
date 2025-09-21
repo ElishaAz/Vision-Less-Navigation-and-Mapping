@@ -16,6 +16,8 @@ namespace Drone.Sensors
 		
 		public float MaxDistance => maxDistance;
 		public float MinDistance => minDistance;
+		
+		public bool IsValid => !float.IsInfinity(noise.Distance) && !float.IsNaN(noise.Distance);
 
 		private LidarNoise noise;
 
@@ -28,6 +30,12 @@ namespace Drone.Sensors
 		{
 			if (Physics.Raycast(transform.position, transform.forward, out var hitInfo, maxDistance, mask))
 			{
+				if (hitInfo.distance < 0)
+				{
+					noise.Set(LidarNoise.Inf);
+					debugLidarTarget.SetActive(false);
+					return;
+				}
 				noise.Set(hitInfo.distance);
 				if (!float.IsPositiveInfinity(Distance))
 				{
@@ -36,7 +44,6 @@ namespace Drone.Sensors
 				}
 				else
 				{
-				
 					debugLidarTarget.SetActive(false);
 				}
 			}

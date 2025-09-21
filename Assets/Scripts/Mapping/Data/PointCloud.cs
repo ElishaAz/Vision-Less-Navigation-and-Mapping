@@ -123,6 +123,8 @@ namespace Mapping.Data
 
         public void ToTexture(Texture2D tex)
         {
+            if (points.Count <= 0) return;
+
             var maxWidth = Mathf.Max(points.Max(v => v.x), -points.Min(v => v.x));
             var maxHeight = Mathf.Max(points.Max(v => v.z), -points.Min(v => v.z));
 
