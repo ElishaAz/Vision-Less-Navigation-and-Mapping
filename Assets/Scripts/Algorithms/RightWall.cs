@@ -28,7 +28,7 @@ namespace Algorithms
 
         private SimplePID rollTurnPID = new SimplePID(1, 0, 0, -0.1f, 0.1f);
 
-        private SimplePID thrustPID = new SimplePID(1, 0, 0, -1f, 1f);
+        private SimplePID thrustPID = new SimplePID(1, 0, 0, -0.5f, 0.5f);
 
         private void Awake()
         {
@@ -76,21 +76,21 @@ namespace Algorithms
 
             float throttlePIDCurrent;
 
-            if (float.IsInfinity(sensors.up.Distance) && float.IsInfinity(sensors.down.Distance))
+            if (!sensors.up.IsValid && !sensors.down.IsValid)
             {
                 throttlePIDCurrent = 0;
             }
-            else if (float.IsInfinity(sensors.up.Distance))
+            else if (!sensors.up.IsValid)
             {
                 throttlePIDCurrent = sensors.up.MaxDistance;
             }
-            else if (float.IsInfinity(sensors.down.Distance))
+            else if (!sensors.down.IsValid)
             {
                 throttlePIDCurrent = sensors.down.MaxDistance;
             }
             else
             {
-                throttlePIDCurrent = top - bottom;
+                throttlePIDCurrent = bottom - top;
             }
 
             thrust = thrustPID.Get(0, throttlePIDCurrent, Time.fixedDeltaTime);
@@ -113,8 +113,6 @@ namespace Algorithms
                         state = State.TurnLeft;
                         lastStateChange = time;
                     }
-
-                    Debug.Log($"{lastFrontRight}, {frontRight}");
 
                     if (lastFrontRight < turnRightThresh && frontRight - lastFrontRight > 1 && lastFrontRight < 3)
                     {
