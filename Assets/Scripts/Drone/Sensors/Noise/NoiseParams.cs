@@ -14,9 +14,9 @@ namespace Drone.Sensors.Noise
         public float multOF = 0.1f;
 
         public float gyro = 0.0001f;
-        public float biasMinGyro = 0.5f;
-        public float biasMaxGyro = 1.5f;
-        public float gyroStd = 0.1f;
+        public float biasMinGyro = 0.0083f;
+        public float biasMaxGyro = 0.025f;
+        public float gyroStd = 0.05f;
 
         public float compassStdDev = 1f; // degrees
 
