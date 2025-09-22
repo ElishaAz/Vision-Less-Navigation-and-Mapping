@@ -30,13 +30,13 @@ namespace Mapping
         {
             foreach (var lidar in sensors.Lidars)
             {
-                if (!lidar.IsValid) continue;
+                if (float.IsNaN(lidar.Distance)) continue;
 
                 // True position for Lidar
                 var lidarRotation = lidar.transform.localRotation;
                 var lidarPosition = drone.transform.position +
                                     (drone.transform.rotation *
-                                     (lidarRotation * Vector3.forward * lidar.Distance +
+                                     (lidarRotation * Vector3.forward * lidar.DistanceNormalized +
                                       lidar.transform.localPosition));
 
                 var collectPosition = drone.transform.position;
@@ -51,9 +51,10 @@ namespace Mapping
         private void Collect(Vector3 position)
         {
             int x = (int)Mathf.Clamp(position.x / scale + area.lossyScale.x / scale / 2, 0, collected.GetLength(0) - 1);
-            int y = (int)Mathf.Clamp(position.y / scale + area.lossyScale.y / yScale / 2, 0, collected.GetLength(1) - 1);
+            int y = (int)Mathf.Clamp(position.y / scale + area.lossyScale.y / yScale / 2, 0,
+                collected.GetLength(1) - 1);
             int z = (int)Mathf.Clamp(position.z / scale + area.lossyScale.z / scale / 2, 0, collected.GetLength(2) - 1);
-            
+
 
             if (collected[x, y, z]) return;
             collected[x, y, z] = true;
