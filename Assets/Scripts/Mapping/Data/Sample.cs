@@ -43,6 +43,11 @@ namespace Mapping.Data
         [SerializeField] private float time;
         public readonly float Time => time;
 
+        [SerializeField] private Vector3 positionGT;
+        public readonly Vector3 PositionGT => positionGT;
+        [SerializeField] private Quaternion rotationGT;
+        public readonly Quaternion RotationGT => rotationGT;
+
         private static Vector3 GetLidarPosition(Lidar lidar, DroneSensors droneSensors)
         {
             if (float.IsNaN(lidar.Distance) || float.IsInfinity(lidar.Distance))
@@ -73,6 +78,9 @@ namespace Mapping.Data
             backRightPosition = GetLidarPosition(sensors.backRight, sensors);
             backLeft = sensors.backLeft.DistanceNormalized;
             backLeftPosition = GetLidarPosition(sensors.backLeft, sensors);
+
+            positionGT = sensors.transform.position;
+            rotationGT = sensors.transform.rotation;
         }
     }
 }
