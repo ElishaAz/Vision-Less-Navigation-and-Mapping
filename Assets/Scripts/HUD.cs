@@ -26,6 +26,9 @@ public class HUD : MonoBehaviour
         GUILayout.Label($"Back Left: {sensors.backLeft.Distance,8:0.00}");
         GUILayout.Label($"Up: {sensors.up.Distance,8:0.00}");
         GUILayout.Label($"Down: {sensors.down.Distance,8:0.00}");
+        GUILayout.Label($"Front: {sensors.front.Distance,8:0.00}");
+        GUILayout.Label($"Right: {sensors.right.Distance,8:0.00}");
+        GUILayout.Label($"Left: {sensors.left.Distance,8:0.00}");
         GUILayout.Label($"Crash count: {sensors.crashDetector.Crashes}");
         GUILayout.Label($"Coverage %: {coverage.Collected * 100,8:0.00}, Total: {coverage.TotalCollected}");
         GUILayout.Label(AlgoLog);

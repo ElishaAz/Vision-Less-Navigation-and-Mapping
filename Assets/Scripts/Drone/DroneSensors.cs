@@ -26,6 +26,11 @@ namespace Drone
 
         [SerializeField] public CrashDetector crashDetector;
 
+        // For the old algorithm:
+        [SerializeField] public Lidar front;
+        [SerializeField] public Lidar right;
+        [SerializeField] public Lidar left;
+
         public Quaternion DroneRotation { get; private set; } = Quaternion.identity;
         public Vector3 DronePosition => dronePosition;
         private Vector3 dronePosition = Vector3.zero;
