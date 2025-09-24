@@ -16,7 +16,9 @@ namespace Algorithms
 
         private SimplePID pitchPid = new SimplePID(0.5f, 0, 0, 0.1f, 1);
         private SimplePID tunnelPid = new SimplePID(1, 0, 0, -1, 1);
-        private SimplePID ffPid = new SimplePID(1, 0, 0, -0.2f, 0.2f);
+        private SimplePID ffPid = new SimplePID(1, 0, 0, -0.1f, 0.1f);
+        private SimplePID ffRollPid = new SimplePID(1, 0, 0, -0.1f, 0.1f);
+        private SimplePID thrustPID = new SimplePID(1, 0, 0, -0.5f, 0.5f);
 
         private bool isTurnRight;
         private float targetYaw;
@@ -86,11 +88,34 @@ namespace Algorithms
             float front = sensors.front.DistanceNormalized;
             float right = sensors.right.DistanceNormalized;
             float left = sensors.left.DistanceNormalized;
+            float top = sensors.up.DistanceNormalized;
+            float bottom = sensors.down.DistanceNormalized;
 
             float roll = 0;
             float pitch = 0;
             float yaw = 0;
             float thrust = 0;
+            
+            float throttlePIDCurrent;
+
+            if (!sensors.up.IsValid && !sensors.down.IsValid)
+            {
+                throttlePIDCurrent = 0;
+            }
+            else if (!sensors.up.IsValid)
+            {
+                throttlePIDCurrent = sensors.up.MaxDistance;
+            }
+            else if (!sensors.down.IsValid)
+            {
+                throttlePIDCurrent = sensors.down.MaxDistance;
+            }
+            else
+            {
+                throttlePIDCurrent = bottom - top;
+            }
+
+            thrust = thrustPID.Get(0, throttlePIDCurrent, Time.fixedDeltaTime);
 
             switch (state)
             {
@@ -170,6 +195,7 @@ namespace Algorithms
                     break;
                 case State.FlyForward:
                     yaw = -ffPid.Get(0.5f, right, Time.fixedDeltaTime);
+                    roll = -ffRollPid.Get(0.5f, right, Time.fixedDeltaTime);
                     pitch = pitchPid.Get(-frontClose, -front, Time.fixedDeltaTime);
                     SetState();
                     break;
