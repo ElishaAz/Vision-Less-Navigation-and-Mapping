@@ -30,6 +30,7 @@ namespace Drone
         [SerializeField] public Lidar front;
         [SerializeField] public Lidar right;
         [SerializeField] public Lidar left;
+        [SerializeField] public Lidar back;
 
         public Quaternion DroneRotation { get; private set; } = Quaternion.identity;
         public Vector3 DronePosition => dronePosition;
@@ -37,9 +38,12 @@ namespace Drone
 
         public Lidar[] Lidars { get; private set; }
 
+        public Lidar[] OldLidars { get; private set; }
+
         private void Awake()
         {
             Lidars = new[] { frontRight, frontLeft, backRight, backLeft, up, down };
+            OldLidars = new[] { front, right, left, back, up, down };
         }
 
         private void FixedUpdate()
