@@ -1,6 +1,7 @@
 using Drone;
 using Mapping;
 using UnityEngine;
+using Algorithms;
 
 public class HUD : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class HUD : MonoBehaviour
     private void OnGUI()
     {
         GUI.color = Color.black;
+        GUILayout.Label($"Time: {Time.time,8:0.00}");
         GUILayout.Label(
             $"Gyro: roll={sensors.gyro.Roll,8:0.00}, pitch={sensors.gyro.Pitch,8:0.00}, yaw={sensors.gyro.Yaw,8:0.00}");
         GUILayout.Label($"Optical Flow: {sensors.opticalFlow.Position,8:0.00}");
@@ -31,6 +33,9 @@ public class HUD : MonoBehaviour
         GUILayout.Label($"Left: {sensors.left.Distance,8:0.00}");
         GUILayout.Label($"Crash count: {sensors.crashDetector.Crashes}");
         GUILayout.Label($"Coverage %: {coverage.Collected * 100,8:0.00}, Total: {coverage.TotalCollected}");
+        float f1 = 2 * (Mapping.Algorithms.EdgeSimilarity.Recall * Mapping.Algorithms.EdgeSimilarity.Precision) /
+                   (Mapping.Algorithms.EdgeSimilarity.Recall + Mapping.Algorithms.EdgeSimilarity.Precision);
+        GUILayout.Label($"Recall: {Mapping.Algorithms.EdgeSimilarity.Recall}, Precision: {Mapping.Algorithms.EdgeSimilarity.Precision}, F1 Score: {f1}");
         GUILayout.Label(AlgoLog);
         if (sensors.crashDetector.InCrash)
         {
