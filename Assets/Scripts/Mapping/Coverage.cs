@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Drone;
 using UnityEngine;
 
@@ -11,6 +12,9 @@ namespace Mapping
         [SerializeField] private float scale;
         [SerializeField] private float yScale;
         [SerializeField] private Transform area;
+        [SerializeField] private float interval = 0.1f;
+
+        [SerializeField] private bool useOldLidars;
 
         private bool[,,] collected;
 
@@ -26,25 +30,35 @@ namespace Mapping
                 (int)(area.lossyScale.z / scale)];
         }
 
-        private void FixedUpdate()
+        private void Start()
         {
-            foreach (var lidar in sensors.Lidars)
+            StartCoroutine(CalculateCoverage());
+        }
+
+        private IEnumerator CalculateCoverage()
+        {
+            while (true)
             {
-                if (float.IsNaN(lidar.Distance)) continue;
-
-                // True position for Lidar
-                var lidarRotation = lidar.transform.localRotation;
-                var lidarPosition = drone.transform.position +
-                                    (drone.transform.rotation *
-                                     (lidarRotation * Vector3.forward * lidar.DistanceNormalized +
-                                      lidar.transform.localPosition));
-
-                var collectPosition = drone.transform.position;
-                while (Vector3.Distance(lidarPosition, collectPosition) >= scale)
+                foreach (var lidar in (useOldLidars ? sensors.OldLidars : sensors.Lidars))
                 {
-                    Collect(collectPosition);
-                    collectPosition = Vector3.MoveTowards(collectPosition, lidarPosition, scale);
+                    if (float.IsNaN(lidar.Distance)) continue;
+
+                    // True position for Lidar
+                    var lidarRotation = lidar.transform.localRotation;
+                    var lidarPosition = drone.transform.position +
+                                        (drone.transform.rotation *
+                                         (lidarRotation * Vector3.forward * lidar.DistanceNormalized +
+                                          lidar.transform.localPosition));
+
+                    var collectPosition = drone.transform.position;
+                    while (Vector3.Distance(lidarPosition, collectPosition) >= scale)
+                    {
+                        Collect(collectPosition);
+                        collectPosition = Vector3.MoveTowards(collectPosition, lidarPosition, scale);
+                    }
                 }
+
+                yield return new WaitForSeconds(interval);
             }
         }
 
