@@ -202,6 +202,7 @@ GameObject:
   - component: {fileID: 6004228942013335812}
   - component: {fileID: 256049769134709326}
   - component: {fileID: 1127960234010285524}
+  - component: {fileID: 7020349679063956178}
   m_Layer: 0
   m_Name: Drone
   m_TagString: Untagged
@@ -468,6 +469,7 @@ MonoBehaviour:
   scale: 0.1
   yScale: 6
   area: {fileID: 0}
+  interval: 0.1
   useOldLidars: 0
 --- !u!135 &1127960234010285524
 SphereCollider:
@@ -490,6 +492,20 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.15
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7020349679063956178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5027716066939427826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5afdc638c6dbdcc789db34a25c2ffc53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefab: {fileID: 3975859441368178010, guid: 95064fc9e745b32b6b8fa4d4f7d912e7, type: 3}
+  spawnRate: 0.1
 --- !u!1001 &1209242744390955462
 PrefabInstance:
   m_ObjectHideFlags: 0
