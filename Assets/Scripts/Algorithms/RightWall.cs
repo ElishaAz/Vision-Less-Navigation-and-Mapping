@@ -76,17 +76,9 @@ namespace Algorithms
 
             float throttlePIDCurrent;
 
-            if (!sensors.up.IsValid && !sensors.down.IsValid)
+            if (top + bottom > 2 * 1.5f)
             {
-                throttlePIDCurrent = 0;
-            }
-            else if (!sensors.up.IsValid)
-            {
-                throttlePIDCurrent = sensors.up.MaxDistance;
-            }
-            else if (!sensors.down.IsValid)
-            {
-                throttlePIDCurrent = sensors.down.MaxDistance;
+                throttlePIDCurrent = bottom - 1.5f;
             }
             else
             {
