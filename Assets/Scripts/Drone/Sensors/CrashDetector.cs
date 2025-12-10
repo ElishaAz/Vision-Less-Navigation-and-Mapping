@@ -13,12 +13,11 @@ namespace Drone.Sensors
 
         private void OnCollisionEnter(Collision other)
         {
-            if (Crashes == 0 && pauseOnCrash)
+            if (pauseOnCrash)
             {
 #if UNITY_EDITOR
                 EditorApplication.isPaused = true;
 #endif
-                pauseOnCrash = false;
             }
 
             InCrash = true;
