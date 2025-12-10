@@ -32,7 +32,7 @@ public class HUD : MonoBehaviour
         GUILayout.Label($"Right: {sensors.right.Distance,8:0.00}");
         GUILayout.Label($"Left: {sensors.left.Distance,8:0.00}");
         GUILayout.Label($"Crash count: {sensors.crashDetector.Crashes}");
-        GUILayout.Label($"Coverage %: {coverage.Collected * 100,8:0.00}, Total: {coverage.TotalCollected}");
+        GUILayout.Label($"Coverage %: {coverage.Collected * 100,8:0.00}, Total Collected: {coverage.TotalCollected}, Total points: {coverage.TotalPoints}");
         float f1 = 2 * (Mapping.Algorithms.EdgeSimilarity.Recall * Mapping.Algorithms.EdgeSimilarity.Precision) /
                    (Mapping.Algorithms.EdgeSimilarity.Recall + Mapping.Algorithms.EdgeSimilarity.Precision);
         GUILayout.Label($"Recall: {Mapping.Algorithms.EdgeSimilarity.Recall}, Precision: {Mapping.Algorithms.EdgeSimilarity.Precision}, F1 Score: {f1}");
