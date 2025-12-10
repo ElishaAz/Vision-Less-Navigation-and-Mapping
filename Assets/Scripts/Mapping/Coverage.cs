@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using Drone;
 using UnityEngine;
 
@@ -9,29 +10,25 @@ namespace Mapping
     {
         [SerializeField] private Drone.Drone drone;
         [SerializeField] private DroneSensors sensors;
-        [SerializeField] private float scale;
-        [SerializeField] private float yScale;
-        [SerializeField] private Transform area;
+        [Range(0.01f, 10f)] [SerializeField] private float scale;
+        [Range(0.01f, 20f)] [SerializeField] private float yScale;
         [SerializeField] private float interval = 0.1f;
 
         [SerializeField] private bool useOldLidars;
 
-        private bool[,,] collected;
 
-        public int TotalCollected { get; private set; }
+        public int TotalCollected => CoverageArea.Areas.Select(a => a.TotalCollected).Sum();
+        public int TotalPoints => CoverageArea.Areas.Select(a => a.TotalPoints).Sum();
 
-        public float Collected => TotalCollected /
-                                  ((float)area.lossyScale.x / scale * area.lossyScale.y / yScale * area.lossyScale.z /
-                                   scale);
-
-        private void Awake()
-        {
-            collected = new bool[(int)(area.lossyScale.x / scale), (int)(area.lossyScale.y / yScale),
-                (int)(area.lossyScale.z / scale)];
-        }
+        public float Collected => TotalCollected / (float)TotalPoints;
 
         private void Start()
         {
+            foreach (var area in CoverageArea.Areas)
+            {
+                area.Create(scale, yScale);
+            }
+
             StartCoroutine(CalculateCoverage());
         }
 
@@ -54,7 +51,8 @@ namespace Mapping
                     while (Vector3.Distance(lidarPosition, collectPosition) >= scale)
                     {
                         Collect(collectPosition);
-                        collectPosition = Vector3.MoveTowards(collectPosition, lidarPosition, scale);
+                        collectPosition =
+                            Vector3.MoveTowards(collectPosition, lidarPosition, scale);
                     }
                 }
 
@@ -64,15 +62,10 @@ namespace Mapping
 
         private void Collect(Vector3 position)
         {
-            int x = (int)Mathf.Clamp(position.x / scale + area.lossyScale.x / scale / 2, 0, collected.GetLength(0) - 1);
-            int y = (int)Mathf.Clamp(position.y / scale + area.lossyScale.y / yScale / 2, 0,
-                collected.GetLength(1) - 1);
-            int z = (int)Mathf.Clamp(position.z / scale + area.lossyScale.z / scale / 2, 0, collected.GetLength(2) - 1);
-
-
-            if (collected[x, y, z]) return;
-            collected[x, y, z] = true;
-            TotalCollected++;
+            foreach (var area in CoverageArea.Areas)
+            {
+                area.Collect(position);
+            }
         }
     }
 }
