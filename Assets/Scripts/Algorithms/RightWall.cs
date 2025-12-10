@@ -45,6 +45,7 @@ namespace Algorithms
         private Vector3 turnRightPivot;
         private Vector3 turnRightStart;
         private float turnRightDistance;
+        private float turnRightYaw;
 
         private float turnRightDecFrames = 0;
         private float lastStateChange;
@@ -116,6 +117,7 @@ namespace Algorithms
                                                                    Vector3.forward * lastFrontRight +
                                                                    sensors.frontRight.transform.localPosition));
                         turnRightDistance = lastFrontRight;
+                        turnRightYaw = sensors.gyro.Yaw;
                         turnRightDecFrames = 0;
                         lastStateChange = time;
                     }
@@ -151,8 +153,16 @@ namespace Algorithms
                         if (turnRightDecFrames < 0) turnRightDecFrames = 0;
                     }
 
-                    // If the front-right is going down steadily (or is too close anyways)
-                    if (turnRightDecFrames > 15 || frontRight < 0.5f)
+                    // Check if we did a full turn already
+                    var angle = sensors.gyro.Yaw - turnRightYaw;
+
+                    if (angle < 0) angle += 360;
+                    if (angle >= 360) angle -= 360;
+                    
+                    Debug.Log(angle);
+
+                    // If the front-right is going down steadily (or is too close anyways), or we made a full turn
+                    if (turnRightDecFrames > 15 || frontRight < 0.5f || angle > 345)
                     {
                         state = State.RightWall;
                         yawPID.Reset();
