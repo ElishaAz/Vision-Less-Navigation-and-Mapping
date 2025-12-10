@@ -11,6 +11,7 @@ namespace Algorithms
 
         [SerializeField] private float emergencyThresh = 0.2f;
         [SerializeField] private float turnRightThresh = 1.2f;
+        [SerializeField] private float bottomDistance = 1.5f;
 
         enum State
         {
@@ -77,9 +78,9 @@ namespace Algorithms
 
             float throttlePIDCurrent;
 
-            if (top + bottom > 2 * 1.5f)
+            if (top + bottom > 2 * bottomDistance)
             {
-                throttlePIDCurrent = bottom - 1.5f;
+                throttlePIDCurrent = bottom - bottomDistance;
             }
             else
             {
