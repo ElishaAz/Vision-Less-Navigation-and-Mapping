@@ -112,15 +112,17 @@ namespace Algorithms
                         state = State.TurnRight;
                         rollTurnPID.Reset();
                         turnRightStart = sensors.DronePosition;
-                        turnRightPivot = sensors.DronePosition + (sensors.DroneRotation *
-                                                                  (sensors.frontRight.transform.localRotation *
-                                                                   Vector3.forward * lastFrontRight +
-                                                                   sensors.frontRight.transform.localPosition));
+
                         turnRightDistance = lastFrontRight;
                         turnRightYaw = sensors.gyro.Yaw;
                         turnRightDecFrames = 0;
                         lastStateChange = time;
                     }
+
+                    turnRightPivot = sensors.DronePosition + (sensors.DroneRotation *
+                                                              (sensors.frontRight.transform.localRotation *
+                                                               Vector3.forward * frontRight +
+                                                               sensors.frontRight.transform.localPosition));
 
                     break;
                 case State.TurnLeft:
