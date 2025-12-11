@@ -93,7 +93,16 @@ namespace Algorithms
             {
                 case State.RightWall:
                     yaw = yawPID.Get(frontRight, backRight, Time.fixedDeltaTime);
-                    roll = -rollPID.Get(1, right, Time.fixedDeltaTime);
+
+                    if (frontLeft + right < 2)
+                    {
+                        // If front-left is too close, stay in the middle
+                        roll = -rollPID.Get(0, right - frontLeft, Time.fixedDeltaTime);
+                    }
+                    else
+                    {
+                        roll = -rollPID.Get(1, right, Time.fixedDeltaTime);
+                    }
 
                     pitch = pitchPID.Get(-0.5f, -Mathf.Min(frontRight, frontLeft), Time.fixedDeltaTime);
 
@@ -161,7 +170,7 @@ namespace Algorithms
 
                     if (angle < 0) angle += 360;
                     if (angle >= 360) angle -= 360;
-                    
+
                     Debug.Log(angle);
 
                     // If the front-right is going down steadily (or is too close anyways), or we made a full turn
