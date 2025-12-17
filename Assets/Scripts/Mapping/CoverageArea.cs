@@ -23,6 +23,9 @@ namespace Mapping
                 return;
             }
 
+            // Clear old areas
+            areas.RemoveAll(a => a == null);
+
             areas.Add(this);
         }
 
