@@ -181,8 +181,8 @@ public class Scoreboard : MonoBehaviour
         GUILayout.BeginVertical("box");
 
         GUILayout.BeginHorizontal();
-        GUILayout.Label("New", GUILayout.Width(w1));
-        GUILayout.Label("Time", GUILayout.Width(w2));
+        GUILayout.Label("Time", GUILayout.Width(w1));
+        GUILayout.Label("New", GUILayout.Width(w2));
         GUILayout.Label("Score", GUILayout.Width(w3));
         GUILayout.Label("Crashes", GUILayout.Width(w4));
         GUILayout.EndHorizontal();
