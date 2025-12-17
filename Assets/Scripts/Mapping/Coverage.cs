@@ -28,35 +28,33 @@ namespace Mapping
             {
                 area.Create(scale, yScale);
             }
-
-            StartCoroutine(CalculateCoverage());
         }
 
-        private IEnumerator CalculateCoverage()
+        private float lastUpdate;
+
+        private void FixedUpdate()
         {
-            while (true)
+            if (Time.timeSinceLevelLoad - lastUpdate < interval) return;
+            lastUpdate = Time.timeSinceLevelLoad;
+
+            foreach (var lidar in (useOldLidars ? sensors.OldLidars : sensors.Lidars))
             {
-                foreach (var lidar in (useOldLidars ? sensors.OldLidars : sensors.Lidars))
+                if (float.IsNaN(lidar.Distance)) continue;
+
+                // True position for Lidar
+                var lidarRotation = lidar.transform.localRotation;
+                var lidarPosition = drone.transform.position +
+                                    (drone.transform.rotation *
+                                     (lidarRotation * Vector3.forward * lidar.DistanceNormalized +
+                                      lidar.transform.localPosition));
+
+                var collectPosition = drone.transform.position;
+                while (Vector3.Distance(lidarPosition, collectPosition) >= scale)
                 {
-                    if (float.IsNaN(lidar.Distance)) continue;
-
-                    // True position for Lidar
-                    var lidarRotation = lidar.transform.localRotation;
-                    var lidarPosition = drone.transform.position +
-                                        (drone.transform.rotation *
-                                         (lidarRotation * Vector3.forward * lidar.DistanceNormalized +
-                                          lidar.transform.localPosition));
-
-                    var collectPosition = drone.transform.position;
-                    while (Vector3.Distance(lidarPosition, collectPosition) >= scale)
-                    {
-                        Collect(collectPosition);
-                        collectPosition =
-                            Vector3.MoveTowards(collectPosition, lidarPosition, scale);
-                    }
+                    Collect(collectPosition);
+                    collectPosition =
+                        Vector3.MoveTowards(collectPosition, lidarPosition, scale);
                 }
-
-                yield return new WaitForSeconds(interval);
             }
         }
 
@@ -66,6 +64,11 @@ namespace Mapping
             {
                 area.Collect(position);
             }
+        }
+
+        public void SetUseOldLidars(bool use)
+        {
+            useOldLidars = use;
         }
     }
 }
