@@ -11,13 +11,13 @@ public class DrawPath : MonoBehaviour
 
     private void Start()
     {
-        lastSpawnTime = Time.time;
+        lastSpawnTime = Time.timeSinceLevelLoad;
     }
 
     private void Update()
     {
-        if (Time.time - lastSpawnTime < spawnRate) return;
+        if (Time.timeSinceLevelLoad - lastSpawnTime < spawnRate) return;
         Instantiate(prefab, transform.position, Quaternion.identity);
-        lastSpawnTime = Time.time;
+        lastSpawnTime = Time.timeSinceLevelLoad;
     }
 }

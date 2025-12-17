@@ -14,11 +14,11 @@ public class ColorOverTime : MonoBehaviour
     private void Start()
     {
         renderer = GetComponent<MeshRenderer>();
-        startTime = Time.time;
+        startTime = Time.timeSinceLevelLoad;
     }
 
     private void Update()
     {
-        renderer.material.color = Color.Lerp(startColor, endColor, (Time.time - startTime) / time);
+        renderer.material.color = Color.Lerp(startColor, endColor, (Time.timeSinceLevelLoad - startTime) / time);
     }
 }

@@ -40,7 +40,6 @@ namespace Algorithms
 
         private void SetState()
         {
-
             float front = sensors.front.DistanceNormalized;
             float right = sensors.right.DistanceNormalized;
             float left = sensors.left.DistanceNormalized;
@@ -51,10 +50,11 @@ namespace Algorithms
                 state = State.Emergency;
                 return;
             }
-            
-            
-            if (Time.time - lastStateSet < 0.3f) return; // Only set the state once a second (other than emergency)
-            
+
+
+            if (Time.timeSinceLevelLoad - lastStateSet < 0.3f)
+                return; // Only set the state once a second (other than emergency)
+
             if (front < frontClose)
             {
                 // Turn C.C.W
@@ -69,7 +69,7 @@ namespace Algorithms
             {
                 // Turn C.W.
                 state = State.MoveForward;
-                moveForwardEnd = Time.time + 0.1f;
+                moveForwardEnd = Time.timeSinceLevelLoad + 0.1f;
                 firstMoveForward = true;
             }
             else
@@ -78,7 +78,7 @@ namespace Algorithms
                 state = State.FlyForward;
             }
 
-            lastStateSet = Time.time;
+            lastStateSet = Time.timeSinceLevelLoad;
         }
 
         private void FixedUpdate()
@@ -95,7 +95,7 @@ namespace Algorithms
             float pitch = 0;
             float yaw = 0;
             float thrust = 0;
-            
+
             float throttlePIDCurrent;
 
             if (!sensors.up.IsValid && !sensors.down.IsValid)
@@ -135,7 +135,7 @@ namespace Algorithms
                     break;
                 case State.MoveForward:
                     pitch = 0.2f;
-                    if (Time.time >= moveForwardEnd)
+                    if (Time.timeSinceLevelLoad >= moveForwardEnd)
                     {
                         if (firstMoveForward)
                         {
@@ -173,7 +173,7 @@ namespace Algorithms
                     {
                         currentYaw += 360;
                     }
-                    
+
                     float diff = targetYaw - currentYaw;
 
                     if (diff > 360)
@@ -189,7 +189,7 @@ namespace Algorithms
                     if (diff > 350)
                     {
                         state = State.MoveForward;
-                        moveForwardEnd = Time.time + 1.5f;
+                        moveForwardEnd = Time.timeSinceLevelLoad + 1.5f;
                     }
 
                     break;

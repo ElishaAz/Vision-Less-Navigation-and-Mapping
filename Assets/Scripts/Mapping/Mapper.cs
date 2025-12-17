@@ -45,7 +45,7 @@ namespace Mapping
 
         private void Start()
         {
-            lastSample = new Sample(sensors, Time.time);
+            lastSample = new Sample(sensors, Time.timeSinceLevelLoad);
             currentEdgeTexture = new Texture2D(100, 100, TextureFormat.RGBA32, false);
             currentEdgeImage.texture = currentEdgeTexture;
             save = false;
@@ -64,7 +64,7 @@ namespace Mapping
             nextUpdate -= Time.fixedDeltaTime;
             if (nextUpdate > 0) return;
             nextUpdate = interval;
-            var sample = new Sample(sensors, Time.time);
+            var sample = new Sample(sensors, Time.timeSinceLevelLoad);
 
             currentEdgeSamples.Add(sample);
 

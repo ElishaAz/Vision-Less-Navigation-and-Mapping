@@ -11,14 +11,14 @@ public class TimedPause : MonoBehaviour
 
     private void Awake()
     {
-        targetTime = Time.time + duration;
+        targetTime = Time.timeSinceLevelLoad + duration;
     }
 
     private void Update()
     {
-        if (Time.time >= targetTime)
+        if (Time.timeSinceLevelLoad >= targetTime)
         {
-            targetTime = Time.time + duration;
+            targetTime = Time.timeSinceLevelLoad + duration;
 #if UNITY_EDITOR
             EditorApplication.isPaused = true;
 #endif
