@@ -153,7 +153,7 @@ namespace Algorithms
                     yaw = 1f;
                     roll = -rollTurnPID.Get(1f, Vector3.Distance(sensors.DronePosition, turnRightPivot),
                         Time.fixedDeltaTime);
-                    pitch = 0.2f;
+                    pitch = 0.4f;
 
                     if (lastFrontRight > frontRight && frontRight < turnRightDistance * 0.8f)
                     {
