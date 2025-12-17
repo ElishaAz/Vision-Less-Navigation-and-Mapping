@@ -4084,6 +4084,9 @@ MonoBehaviour:
   - 300
   - 600
   timeScale: 100
+  maps:
+  - {fileID: 133251390}
+  - {fileID: 1853796978}
 --- !u!4 &1222876758
 Transform:
   m_ObjectHideFlags: 0

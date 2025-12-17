@@ -10,14 +10,17 @@ public class Scoreboard : MonoBehaviour
 {
     [SerializeField] private float[] intervals;
     [SerializeField] private float timeScale = 1;
+    [SerializeField] private GameObject[] maps;
 
     private static int currentInterval = 0;
     private static bool currentNew = true;
+    private static int currentMap = 0;
 
     private static int iterations = 0;
 
     private readonly struct Score
     {
+        public readonly int map;
         public readonly float interval;
         public readonly bool isNew;
         public readonly int collected;
@@ -26,8 +29,9 @@ public class Scoreboard : MonoBehaviour
         private readonly float recall;
         private readonly float precision;
 
-        public Score(float interval, bool isNew, int collected, int crashes, float recall, float precision)
+        public Score(int map, float interval, bool isNew, int collected, int crashes, float recall, float precision)
         {
+            this.map = map;
             this.interval = interval;
             this.isNew = isNew;
             this.collected = collected;
@@ -74,8 +78,16 @@ public class Scoreboard : MonoBehaviour
 
         if (currentInterval >= intervals.Length)
         {
-            finished = true;
-            Time.timeScale = 0;
+            if (currentMap >= maps.Length)
+            {
+                finished = true;
+                Time.timeScale = 0;
+            }
+            else
+            {
+                currentMap++;
+                currentInterval = 0;
+            }
         }
         else
         {
@@ -84,6 +96,17 @@ public class Scoreboard : MonoBehaviour
         coverage.SetUseOldLidars(!currentNew);
 
         FindAnyObjectByType<DroneView.DroneView>()?.SetUseOldLidars(!currentNew);
+
+        if (currentMap < maps.Length)
+        {
+            for (var i = 0; i < maps.Length; i++)
+            {
+                if (i == currentMap) continue;
+                maps[i].SetActive(false);
+            }
+
+            maps[currentMap].SetActive(true);
+        }
     }
 
     private void Update()
@@ -95,6 +118,7 @@ public class Scoreboard : MonoBehaviour
     }
 
     private Score CurrentScore => new Score(
+        currentMap,
         intervals[currentInterval],
         currentNew,
         coverage.TotalCollected,
@@ -156,6 +180,7 @@ public class Scoreboard : MonoBehaviour
         }
     }
 
+    private const float w0 = 80;
     private const float w1 = 80;
     private const float w2 = 80;
     private const float w3 = 80;
@@ -166,6 +191,7 @@ public class Scoreboard : MonoBehaviour
         var origColor = GUI.color;
         GUILayout.BeginHorizontal();
         GUI.color = score.isNew ? new Color(0, 100, 0) : Color.blue;
+        GUILayout.Label(score.map.ToString(), GUILayout.Width(w0));
         GUILayout.Label(IntervalToString(score.interval), GUILayout.Width(w1));
         GUILayout.Label(score.isNew.ToString(), GUILayout.Width(w2));
         GUILayout.Label(score.collected.ToString(), GUILayout.Width(w3));
@@ -181,6 +207,7 @@ public class Scoreboard : MonoBehaviour
         GUILayout.BeginVertical("box");
 
         GUILayout.BeginHorizontal();
+        GUILayout.Label("Map", GUILayout.Width(w0));
         GUILayout.Label("Time", GUILayout.Width(w1));
         GUILayout.Label("New", GUILayout.Width(w2));
         GUILayout.Label("Score", GUILayout.Width(w3));
