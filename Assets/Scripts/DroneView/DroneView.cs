@@ -18,8 +18,13 @@ namespace DroneView
         [SerializeField] private Transform holder;
 
         [SerializeField] private float interval = 0.1f;
-        
+
         [SerializeField] private bool useOldLidars;
+
+        public void SetUseOldLidars(bool use)
+        {
+            useOldLidars = use;
+        }
 
         private void Awake()
         {
@@ -41,7 +46,7 @@ namespace DroneView
 
         private IEnumerator DrawLidars()
         {
-            var lidars = (useOldLidars? sensors.OldLidars : sensors.Lidars);
+            var lidars = (useOldLidars ? sensors.OldLidars : sensors.Lidars);
             while (true)
             {
                 var dronePosition = offset + sensors.DronePosition;
