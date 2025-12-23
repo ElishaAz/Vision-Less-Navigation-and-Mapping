@@ -20,7 +20,7 @@ public class Scoreboard : MonoBehaviour
 
     private readonly struct Score
     {
-        public readonly int map;
+        public readonly string map;
         public readonly float interval;
         public readonly bool isNew;
         public readonly int collected;
@@ -30,7 +30,7 @@ public class Scoreboard : MonoBehaviour
         public readonly float precision;
         public readonly float f1;
 
-        public Score(int map, float interval, bool isNew, int collected, int crashes, float recall, float precision)
+        public Score(string map, float interval, bool isNew, int collected, int crashes, float recall, float precision)
         {
             this.map = map;
             this.interval = interval;
@@ -81,33 +81,29 @@ public class Scoreboard : MonoBehaviour
 
         if (currentInterval >= intervals.Length)
         {
-            if (currentMap >= maps.Length)
-            {
-                finished = true;
-                Time.timeScale = 0;
-            }
-            else
-            {
-                currentMap++;
-                currentInterval = 0;
-            }
+            currentMap++;
+            currentInterval = 0;
         }
-        else
+
+        if (currentMap >= maps.Length)
         {
+            finished = true;
+            Time.timeScale = 0;
         }
 
         coverage.SetUseOldLidars(!currentNew);
 
         FindAnyObjectByType<DroneView.DroneView>()?.SetUseOldLidars(!currentNew);
 
+        for (var i = 0; i < maps.Length; i++)
+        {
+            if (i == currentMap) continue;
+            maps[i].SetActive(false);
+        }
+
+
         if (currentMap < maps.Length)
         {
-            for (var i = 0; i < maps.Length; i++)
-            {
-                if (i == currentMap) continue;
-                maps[i].SetActive(false);
-            }
-
             maps[currentMap].SetActive(true);
         }
     }
@@ -121,7 +117,7 @@ public class Scoreboard : MonoBehaviour
     }
 
     private Score CurrentScore => new Score(
-        currentMap,
+        currentMap >= maps.Length ? "null" : maps[currentMap].name,
         intervals[currentInterval],
         currentNew,
         coverage.TotalCollected,
@@ -209,7 +205,8 @@ public class Scoreboard : MonoBehaviour
         GUILayout.EndHorizontal();
     }
 
-    private Vector2 scrollPosition;
+    // Keep scroll position between scene loads
+    private static Vector2 scrollPosition;
 
     private void OnGUI()
     {
