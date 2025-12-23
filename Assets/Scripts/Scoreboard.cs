@@ -200,6 +200,8 @@ public class Scoreboard : MonoBehaviour
         GUILayout.EndHorizontal();
     }
 
+    private Vector2 scrollPosition;
+
     private void OnGUI()
     {
         GUILayout.BeginHorizontal();
@@ -216,6 +218,8 @@ public class Scoreboard : MonoBehaviour
 
         GUILayout.Space(3);
 
+        scrollPosition = GUILayout.BeginScrollView(scrollPosition);
+
         foreach (var score in scores)
         {
             DisplayScore(score);
@@ -230,6 +234,9 @@ public class Scoreboard : MonoBehaviour
             GUILayout.Space(10);
             GUILayout.Label("Finished");
         }
+        
+        GUILayout.Space(10);
+        GUILayout.EndScrollView();
 
         GUILayout.Space(10);
         GUILayout.Label($"Iterations: {iterations}");
