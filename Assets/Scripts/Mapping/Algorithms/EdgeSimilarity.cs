@@ -13,6 +13,13 @@ namespace Mapping.Algorithms
         private static int found = 0;
         private static int guessed = 0;
 
+        public static void Reset()
+        {
+            total = 0;
+            found = 0;
+            guessed = 0;
+        }
+
         public static void EdgeAdded(Map map, Edge edge, int index)
         {
             PointCloud pointCloud = PointCloud.FromSamples(edge.Samples);

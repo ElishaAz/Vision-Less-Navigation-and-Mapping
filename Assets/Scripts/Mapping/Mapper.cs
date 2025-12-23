@@ -41,6 +41,7 @@ namespace Mapping
         private void Awake()
         {
             Instance = this;
+            Algorithms.EdgeSimilarity.Reset();
         }
 
         private void Start()
@@ -51,7 +52,7 @@ namespace Mapping
             save = false;
         }
 
-        private float nextUpdate;
+        private float lastUpdate;
 
         private void FixedUpdate()
         {
@@ -61,9 +62,9 @@ namespace Mapping
                 MapLoader.Save(Map, "map.json");
             }
 
-            nextUpdate -= Time.fixedDeltaTime;
-            if (nextUpdate > 0) return;
-            nextUpdate = interval;
+            if (Time.timeSinceLevelLoad - lastUpdate < interval) return;
+            lastUpdate = Time.timeSinceLevelLoad;
+
             var sample = new Sample(sensors, Time.timeSinceLevelLoad);
 
             currentEdgeSamples.Add(sample);
