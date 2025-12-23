@@ -253,6 +253,7 @@ MonoBehaviour:
   drone: {fileID: 317637467296337126}
   emergencyThresh: 0.2
   turnRightThresh: 1.2
+  bottomDistance: 1.5
 --- !u!114 &3986081357067938140
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -412,7 +413,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!114 &1566148759198104252
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -468,7 +469,6 @@ MonoBehaviour:
   sensors: {fileID: 3085994043904529954}
   scale: 0.1
   yScale: 6
-  area: {fileID: 0}
   interval: 0.1
   useOldLidars: 0
 --- !u!135 &1127960234010285524
