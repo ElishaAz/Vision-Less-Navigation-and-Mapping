@@ -35,54 +35,56 @@ namespace DroneView
         {
             transform.position = offset + sensors.opticalFlow.Position3D;
             transform.eulerAngles = new Vector3(sensors.gyro.Pitch, sensors.gyro.Yaw, sensors.gyro.Roll);
-            StartCoroutine(DrawLidars());
         }
+
+        private float lastDraw = 0;
 
         private void FixedUpdate()
         {
             transform.position = offset + sensors.DronePosition;
             transform.rotation = sensors.DroneRotation;
+
+            if (Time.timeSinceLevelLoad - lastDraw >= interval)
+            {
+                lastDraw = Time.timeSinceLevelLoad;
+                DrawLidars();
+            }
         }
 
-        private IEnumerator DrawLidars()
+        private void DrawLidars()
         {
             var lidars = (useOldLidars ? sensors.OldLidars : sensors.Lidars);
-            while (true)
+            var dronePosition = offset + sensors.DronePosition;
+            var droneRotation = sensors.DroneRotation;
+
+            for (var i = 0; i < lidars.Length; i++)
             {
-                var dronePosition = offset + sensors.DronePosition;
-                var droneRotation = sensors.DroneRotation;
-
-                for (var i = 0; i < lidars.Length; i++)
+                var lidar = lidars[i];
+                if (float.IsNaN(lidar.Distance) || float.IsInfinity(lidar.Distance))
                 {
-                    var lidar = lidars[i];
-                    if (float.IsNaN(lidar.Distance) || float.IsInfinity(lidar.Distance))
-                    {
-                        if (i < lidarSticks.Length)
-                            lidarSticks[i]?.SetActive(false);
-                        continue;
-                    }
-
-                    var spawnPosition = sensors.PositionForLidar(lidar) + offset;
-
-                    if (lidarPrefs[i] != null)
-                    {
-                        var lidarPos = Instantiate(lidarPrefs[i], spawnPosition, Quaternion.identity);
-                        lidarPos.transform.SetParent(holder);
-                    }
-
-                    if (i < lidarSticks.Length && lidarSticks[i] != null)
-                    {
-                        var stick = lidarSticks[i];
-                        stick.SetActive(true);
-
-                        var diff = spawnPosition - dronePosition;
-                        stick.transform.position = (dronePosition + spawnPosition) / 2;
-                        stick.transform.rotation = Quaternion.LookRotation(diff);
-                        stick.transform.localScale = new Vector3(1, 1, Vector3.Distance(dronePosition, spawnPosition));
-                    }
+                    if (i < lidarSticks.Length)
+                        lidarSticks[i]?.SetActive(false);
+                    continue;
                 }
 
-                yield return new WaitForSeconds(interval);
+                var spawnPosition = sensors.PositionForLidar(lidar) + offset;
+
+                if (lidarPrefs[i] != null)
+                {
+                    var lidarPos = Instantiate(lidarPrefs[i], spawnPosition, Quaternion.identity);
+                    lidarPos.transform.SetParent(holder);
+                }
+
+                if (i < lidarSticks.Length && lidarSticks[i] != null)
+                {
+                    var stick = lidarSticks[i];
+                    stick.SetActive(true);
+
+                    var diff = spawnPosition - dronePosition;
+                    stick.transform.position = (dronePosition + spawnPosition) / 2;
+                    stick.transform.rotation = Quaternion.LookRotation(diff);
+                    stick.transform.localScale = new Vector3(1, 1, Vector3.Distance(dronePosition, spawnPosition));
+                }
             }
         }
     }
