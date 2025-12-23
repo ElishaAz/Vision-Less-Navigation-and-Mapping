@@ -26,8 +26,9 @@ public class Scoreboard : MonoBehaviour
         public readonly int collected;
         public readonly int crashes;
 
-        private readonly float recall;
-        private readonly float precision;
+        public readonly float recall;
+        public readonly float precision;
+        public readonly float f1;
 
         public Score(int map, float interval, bool isNew, int collected, int crashes, float recall, float precision)
         {
@@ -38,6 +39,8 @@ public class Scoreboard : MonoBehaviour
             this.crashes = crashes;
             this.recall = recall;
             this.precision = precision;
+
+            f1 = 2 * (recall * precision) / (recall + precision);
         }
     }
 
@@ -185,6 +188,9 @@ public class Scoreboard : MonoBehaviour
     private const float w2 = 80;
     private const float w3 = 80;
     private const float w4 = 80;
+    private const float w5 = 80;
+    private const float w6 = 80;
+    private const float w7 = 80;
 
     private void DisplayScore(Score score)
     {
@@ -196,6 +202,9 @@ public class Scoreboard : MonoBehaviour
         GUILayout.Label(score.isNew.ToString(), GUILayout.Width(w2));
         GUILayout.Label(score.collected.ToString(), GUILayout.Width(w3));
         GUILayout.Label(score.crashes.ToString(), GUILayout.Width(w4));
+        GUILayout.Label(score.recall.ToString(), GUILayout.Width(w5));
+        GUILayout.Label(score.precision.ToString(), GUILayout.Width(w6));
+        GUILayout.Label(score.f1.ToString(), GUILayout.Width(w7));
         GUI.color = origColor;
         GUILayout.EndHorizontal();
     }
@@ -214,11 +223,15 @@ public class Scoreboard : MonoBehaviour
         GUILayout.Label("New", GUILayout.Width(w2));
         GUILayout.Label("Score", GUILayout.Width(w3));
         GUILayout.Label("Crashes", GUILayout.Width(w4));
+        GUILayout.Label("Recall", GUILayout.Width(w5));
+        GUILayout.Label("Precision", GUILayout.Width(w6));
+        GUILayout.Label("F1", GUILayout.Width(w7));
         GUILayout.EndHorizontal();
 
         GUILayout.Space(3);
 
-        scrollPosition = GUILayout.BeginScrollView(scrollPosition);
+        scrollPosition =
+            GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(w0 + w1 + w2 + w3 + w4 + w5 + w6 + w7 + 70));
 
         foreach (var score in scores)
         {
@@ -234,7 +247,7 @@ public class Scoreboard : MonoBehaviour
             GUILayout.Space(10);
             GUILayout.Label("Finished");
         }
-        
+
         GUILayout.Space(10);
         GUILayout.EndScrollView();
 
