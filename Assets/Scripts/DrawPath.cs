@@ -14,7 +14,7 @@ public class DrawPath : MonoBehaviour
         lastSpawnTime = Time.timeSinceLevelLoad;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (Time.timeSinceLevelLoad - lastSpawnTime < spawnRate) return;
         Instantiate(prefab, transform.position, Quaternion.identity);
