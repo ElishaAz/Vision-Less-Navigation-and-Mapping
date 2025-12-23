@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Algorithms;
 using Drone;
 using Mapping;
@@ -11,12 +12,16 @@ public class Scoreboard : MonoBehaviour
     [SerializeField] private float[] intervals;
     [SerializeField] private float timeScale = 1;
     [SerializeField] private GameObject[] maps;
+    [SerializeField] private int repeat = 1;
+    [SerializeField] private string savePath = "report.csv";
 
     private static int currentInterval = 0;
     private static bool currentNew = true;
     private static int currentMap = 0;
+    private static int iteration = 0;
 
     private static int iterations = 0;
+    private static StreamWriter writer;
 
     private readonly struct Score
     {
@@ -57,6 +62,15 @@ public class Scoreboard : MonoBehaviour
     {
 #if UNITY_EDITOR
         if (timeScale > 100) timeScale = 100;
+#endif
+
+#if !UNITY_EDITOR
+        if (writer == null)
+        {
+            writer = new StreamWriter(savePath);
+            writer.WriteLine("Map, Time, New, Coverage, Crashes, Recall, Precision, F1 Score");
+            writer.Flush();
+        }
 #endif
 
         FindAnyObjectByType<TimeScale>()?.gameObject.SetActive(false);
@@ -118,7 +132,7 @@ public class Scoreboard : MonoBehaviour
 
     private Score CurrentScore => new Score(
         currentMap >= maps.Length ? "null" : maps[currentMap].name,
-        intervals[currentInterval],
+        Time.timeSinceLevelLoad,
         currentNew,
         coverage.TotalCollected,
         sensors.crashDetector.Crashes,
@@ -128,16 +142,28 @@ public class Scoreboard : MonoBehaviour
 
     private void FinishedInterval()
     {
-        scores.Add(CurrentScore);
+        var score = CurrentScore;
+        scores.Add(score);
+#if !UNITY_EDITOR
+        writer.WriteLine($"{score.map}, {IntervalToString(score.interval)}, {score.isNew}, {score.collected}, " +
+                         $"{score.crashes}, {score.recall}, {score.precision}, {score.f1}");
+        writer.Flush();
+#endif
 
-        if (currentNew)
+        iteration++;
+
+        if (iteration >= repeat)
         {
-            currentNew = false;
-        }
-        else
-        {
-            currentNew = true;
-            currentInterval++;
+            iteration = 0;
+            if (currentNew)
+            {
+                currentNew = false;
+            }
+            else
+            {
+                currentNew = true;
+                currentInterval++;
+            }
         }
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -159,7 +185,7 @@ public class Scoreboard : MonoBehaviour
     {
         int seconds = Mathf.FloorToInt(interval);
 
-        int minutes = seconds % 60;
+        int minutes = seconds / 60;
         seconds -= minutes * 60;
 
         if (minutes > 0)
@@ -218,7 +244,7 @@ public class Scoreboard : MonoBehaviour
         GUILayout.Label("Map", GUILayout.Width(w0));
         GUILayout.Label("Time", GUILayout.Width(w1));
         GUILayout.Label("New", GUILayout.Width(w2));
-        GUILayout.Label("Score", GUILayout.Width(w3));
+        GUILayout.Label("Coverage", GUILayout.Width(w3));
         GUILayout.Label("Crashes", GUILayout.Width(w4));
         GUILayout.Label("Recall", GUILayout.Width(w5));
         GUILayout.Label("Precision", GUILayout.Width(w6));
