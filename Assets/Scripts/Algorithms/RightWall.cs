@@ -128,11 +128,13 @@ namespace Algorithms
                         turnRightDecFrames = 0;
                         lastStateChange = time;
                     }
-
-                    turnRightPivot = sensors.DronePosition + (sensors.DroneRotation *
-                                                              (sensors.frontRight.transform.localRotation *
-                                                               Vector3.forward * frontRight +
-                                                               sensors.frontRight.transform.localPosition));
+                    else
+                    {
+                        turnRightPivot = sensors.DronePosition + (sensors.DroneRotation *
+                                                                  (sensors.frontRight.transform.localRotation *
+                                                                   Vector3.forward * frontRight +
+                                                                   sensors.frontRight.transform.localPosition));
+                    }
 
                     break;
                 case State.TurnLeft:
@@ -174,7 +176,7 @@ namespace Algorithms
                     Debug.Log(angle);
 
                     // If the front-right is going down steadily (or is too close anyways), or we made a full turn
-                    if (turnRightDecFrames > 15 || frontRight < 0.5f || angle > 345)
+                    if (turnRightDecFrames > 15 || frontRight < 0.5f || frontLeft < 0.15f || angle > 345)
                     {
                         state = State.RightWall;
                         yawPID.Reset();
