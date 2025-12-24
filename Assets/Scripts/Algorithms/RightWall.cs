@@ -104,6 +104,7 @@ namespace Algorithms
                         roll = -rollPID.Get(1, right, Time.fixedDeltaTime);
                     }
 
+                    // This is problematic as frontRight would not be more than 1 because of the yaw and roll PIDs
                     pitch = pitchPID.Get(-0.5f, -Mathf.Min(frontRight, frontLeft), Time.fixedDeltaTime);
 
                     if (time - lastStateChange < 1)
