@@ -543,6 +543,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 10256db91487648f7bf284196693c9a5, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 21abb4a66ce783258a110cdecffbb27d, type: 2}
     - target: {fileID: 919132149155446097, guid: 10256db91487648f7bf284196693c9a5, type: 3}
       propertyPath: m_Name
       value: 2story-0
@@ -781,6 +785,62 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 249423547}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &252033185
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 252033187}
+  - component: {fileID: 252033186}
+  m_Layer: 0
+  m_Name: Scoreboard 10m only
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &252033186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 252033185}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf36d53147314634b70b3a3c68f86344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  intervals:
+  - 600
+  timeScale: 100
+  maps:
+  - {fileID: 133251390}
+  - {fileID: 1853796978}
+  - {fileID: 1030809936}
+  - {fileID: 659152217}
+  - {fileID: 1791639539}
+  bothAlgos: 0
+  repeat: 3
+  savePath: report.csv
+--- !u!4 &252033187
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 252033185}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &265358160
 GameObject:
   m_ObjectHideFlags: 0
@@ -1009,7 +1069,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2b11c4101b54b48ab088d81e4ec9653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeScale: 10
+  timeScale: 2
 --- !u!4 &336494424
 Transform:
   m_ObjectHideFlags: 0
@@ -1037,7 +1097,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 416c73d5af60c3490ba8fd80174dcbc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duration: 210
+  duration: 600
 --- !u!1 &359189036
 GameObject:
   m_ObjectHideFlags: 0
@@ -2851,7 +2911,7 @@ Transform:
   m_GameObject: {fileID: 782243206}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 2.8600001, y: 0.235, z: -1.52}
+  m_LocalPosition: {x: 2.8600001, y: 0.587, z: -1.52}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5167,7 +5227,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1222876757
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5192,6 +5252,9 @@ MonoBehaviour:
   - {fileID: 1030809936}
   - {fileID: 659152217}
   - {fileID: 1791639539}
+  bothAlgos: 1
+  repeat: 5
+  savePath: report.csv
 --- !u!4 &1222876758
 Transform:
   m_ObjectHideFlags: 0
@@ -10104,3 +10167,4 @@ SceneRoots:
   - {fileID: 1853796979}
   - {fileID: 1708784720}
   - {fileID: 1222876758}
+  - {fileID: 252033187}

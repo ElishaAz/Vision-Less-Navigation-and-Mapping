@@ -468,7 +468,7 @@ MonoBehaviour:
   drone: {fileID: 317637467296337126}
   sensors: {fileID: 3085994043904529954}
   scale: 0.1
-  yScale: 6
+  yScale: 3
   interval: 0.1
   useOldLidars: 0
 --- !u!135 &1127960234010285524
