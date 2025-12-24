@@ -174,8 +174,6 @@ namespace Algorithms
                     if (angle < 0) angle += 360;
                     if (angle >= 360) angle -= 360;
 
-                    Debug.Log(angle);
-
                     // If the front-right is going down steadily (or is too close anyways), or we made a full turn
                     if (turnRightDecFrames > 15 || frontRight < 0.5f || frontLeft < 0.15f || angle > 345)
                     {
