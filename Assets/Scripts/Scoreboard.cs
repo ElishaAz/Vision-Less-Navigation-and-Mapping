@@ -12,6 +12,7 @@ public class Scoreboard : MonoBehaviour
     [SerializeField] private float[] intervals;
     [SerializeField] private float timeScale = 1;
     [SerializeField] private GameObject[] maps;
+    [SerializeField] private bool bothAlgos = true;
     [SerializeField] private int repeat = 1;
     [SerializeField] private string savePath = "report.csv";
 
@@ -82,7 +83,12 @@ public class Scoreboard : MonoBehaviour
         rightWall = drone.GetComponent<RightWall>();
         rightWallOld = drone.GetComponent<RightWallOld>();
 
-        if (currentNew)
+        if (!bothAlgos)
+        {
+            currentNew = true;
+        }
+
+        if (currentNew || !bothAlgos)
         {
             rightWall.enabled = true;
             rightWallOld.enabled = false;
@@ -155,7 +161,7 @@ public class Scoreboard : MonoBehaviour
         if (iteration >= repeat)
         {
             iteration = 0;
-            if (currentNew)
+            if (currentNew && bothAlgos)
             {
                 currentNew = false;
             }
