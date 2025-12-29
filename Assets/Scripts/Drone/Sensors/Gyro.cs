@@ -11,7 +11,7 @@ namespace Drone.Sensors
         public float Pitch { get; private set; }
 
         private GyroNoise yawNoise;
-        public float Yaw => yawNoise.Value;
+        public float Yaw => NoiseParams.Instance.noiseEnabled ? yawNoise.Value : trueYaw;
 
         /// <summary>
         /// Orientation, Pitch Yaw Roll (rotation in X Y Z)
@@ -19,6 +19,8 @@ namespace Drone.Sensors
         public Vector3 Orientation => new Vector3(Pitch, Yaw, Roll);
 
         private Rigidbody rb;
+
+        private float trueYaw;
 
         private void Awake()
         {
@@ -42,6 +44,8 @@ namespace Drone.Sensors
             {
                 Pitch -= 360;
             }
+
+            trueYaw = orientation.y;
 
             yawNoise.Set(Mathf.Rad2Deg * rb.angularVelocity.y);
         }
